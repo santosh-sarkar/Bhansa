@@ -2,6 +2,7 @@ import { createApp } from '@/app';
 import { env } from '@/config/env';
 import { connectRedis, disconnectRedis } from '@/lib/redis';
 import { emailWorker } from '@/jobs/email.queue';
+import { trialExpiryWorker, scheduleTrialExpiryJob } from '@/jobs/trialExpiry.queue';
 import { logger } from '@/lib/logger';
 
 async function start(): Promise<void> {
@@ -11,6 +12,11 @@ async function start(): Promise<void> {
   // Ensure email worker is ready
   await emailWorker.waitUntilReady();
   logger.info('Email worker ready');
+
+  // Ensure trial expiry worker is ready and scheduled
+  await trialExpiryWorker.waitUntilReady();
+  await scheduleTrialExpiryJob();
+  logger.info('Trial expiry worker ready and scheduled');
 
   const app = createApp();
 
@@ -23,8 +29,11 @@ async function start(): Promise<void> {
     server.close(() => {
       void (async () => {
         await emailWorker.close();
+        await trialExpiryWorker.close();
         await disconnectRedis();
-        logger.info('HTTP server closed, email worker closed, Redis disconnected');
+        logger.info(
+          'HTTP server closed, email worker closed, trial expiry worker closed, Redis disconnected',
+        );
         process.exit(0);
       })();
     });

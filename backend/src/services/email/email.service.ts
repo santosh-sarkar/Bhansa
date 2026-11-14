@@ -5,6 +5,11 @@ import {
   passwordResetEmailTemplate,
   verificationEmailTemplate,
 } from '@/lib/emailTemplates';
+import {
+  trialExpiryReminderTemplate,
+  trialExpiredTemplate,
+  trialSuspendedTemplate,
+} from '@/lib/trialEmailTemplates';
 
 const isTest = process.env.NODE_ENV === 'test';
 
@@ -18,6 +23,14 @@ export interface EmailService {
     roleName: string,
     expiresAt: Date,
   ): Promise<void>;
+  sendTrialExpiryReminder(
+    email: string,
+    organizationName: string,
+    daysUntilExpiry: number,
+    trialEndsAt: Date,
+  ): Promise<void>;
+  sendTrialExpired(email: string, organizationName: string): Promise<void>;
+  sendTrialSuspended(email: string, organizationName: string): Promise<void>;
 }
 
 export const emailService: EmailService = {
@@ -76,6 +89,57 @@ export const emailService: EmailService = {
     );
 
     await emailQueue.add('send-invitation', {
+      to: email,
+      subject,
+      html,
+    });
+  },
+
+  async sendTrialExpiryReminder(
+    email: string,
+    organizationName: string,
+    daysUntilExpiry: number,
+    trialEndsAt: Date,
+  ): Promise<void> {
+    if (isTest) {
+      return;
+    }
+
+    const { subject, html } = trialExpiryReminderTemplate(
+      organizationName,
+      daysUntilExpiry,
+      trialEndsAt,
+    );
+
+    await emailQueue.add('send-trial-expiry-reminder', {
+      to: email,
+      subject,
+      html,
+    });
+  },
+
+  async sendTrialExpired(email: string, organizationName: string): Promise<void> {
+    if (isTest) {
+      return;
+    }
+
+    const { subject, html } = trialExpiredTemplate(organizationName);
+
+    await emailQueue.add('send-trial-expired', {
+      to: email,
+      subject,
+      html,
+    });
+  },
+
+  async sendTrialSuspended(email: string, organizationName: string): Promise<void> {
+    if (isTest) {
+      return;
+    }
+
+    const { subject, html } = trialSuspendedTemplate(organizationName);
+
+    await emailQueue.add('send-trial-suspended', {
       to: email,
       subject,
       html,

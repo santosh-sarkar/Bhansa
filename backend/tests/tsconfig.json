@@ -23,6 +23,7 @@
     "unit/services/audit/audit.test.ts",
     "unit/services/plans/plan.test.ts",
     "integration/plans/subscription.spec.ts",
+    "unit/jobs/trialExpiry.test.ts",
     "unit/middlewares/subscriptionGuard.test.ts",
     "integration/authz/permissions.spec.ts",
     "../prisma/seedData.ts",

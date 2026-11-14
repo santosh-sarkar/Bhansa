@@ -35,7 +35,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 ⬜ todo · 🟡 in progress · ⛔ blocked (waiting for user decision) · ✅ done
 
-**Current task:** `S-004` (Trial-expiry job).
+**Current task:** `S-005` (Custom-plan request endpoint).
 
 ### Before starting a task, the agent must
 
@@ -97,7 +97,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | S-001 | `getLimits(organization)`: plan values merged with subscription overrides | A-001 | ✅ |
 | S-002 | Subscription guard middleware: trialing/active normal, grace read-only, suspended blocked | S-001 | ✅ |
 | S-003 | `GET /subscription` with usage versus limits | S-001 | ✅ |
-| S-004 | Trial-expiry job (trialing → grace → suspended) and reminder emails | S-002, A-002 | ⬜ |
+| S-004 | Trial-expiry job (trialing → grace → suspended) and reminder emails | S-002, A-002 | ✅ |
 | S-005 | Custom-plan request endpoint (creates lead) | A-005 | ⬜ |
 | S-006 | Plan-limit check helper used by outlets, staff and menu creation | S-001 | ⬜ |
 
@@ -302,5 +302,6 @@ Multi-outlet is in v1, but the outlet-context middleware exists from A-010 onwar
 | 2026-11-14 | S-001 | ✅ done | Added `src/services/plans/plan.service.ts` with `getLimits(organization)` merging plan base values with subscription overrides (D-059). Returns `{ maxOutlets, maxStaff, maxMenuItems, multiOutletEnabled, features }`; treats `null` as unlimited. Includes `canCreateOutlet`, `canAddStaff`, `canAddMenuItem` helpers that check current usage against effective limits, ignoring soft-deleted resources. 14 unit tests cover base limits, overrides, suspended/cancelled subscriptions, multiple subscriptions (only latest active counts), and all three limit checks with soft-delete filtering. 253 tests pass (20 suites), 89.76% coverage (80% threshold), `plan.service.ts` 90.32%. Type-check, lint, format:check and build pass. |
 | 2026-11-14 | S-002 | ✅ done | Added `src/middlewares/subscriptionGuard.ts` middleware that checks the organization's subscription status on every outlet-scoped request (after auth, before outletContext). Reads the latest active subscription (trialing/active/grace) or suspended/cancelled status. Allows full access for trialing/active subscriptions. In grace period: GET requests allowed; all mutations (POST/PATCH/PUT/DELETE) blocked with 403 `SUBSCRIPTION_READ_ONLY`. Suspended/cancelled: all requests blocked with 403 `SUBSCRIPTION_SUSPENDED`. No subscription: GET allowed, mutations blocked with 403 `FORBIDDEN`. Exempts `/health`, `/auth/*`, `/docs*`. 18 integration tests cover all states (trialing, grace, suspended, cancelled, none), mutating/read requests, tenant isolation, and exempt routes. 271 tests pass (21 suites), 89.76% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 | 2026-11-14 | S-003 | ✅ done | Added `GET /api/v1/plans/subscription` endpoint returning plan, status, trial/grace dates, override limits, and usage versus effective limits for outlets, staff, and menu items. Uses `getLimits` from S-001 and queries actual usage counts. Protected by `billing.manage` permission + subscription guard. 9 integration tests cover base response, usage counts, overrides, permissions, outlet header, and missing subscription. 280 tests pass (22 suites), 89.96% coverage (80% threshold), `subscription.service.ts` 100%. Type-check, lint, format:check and build pass. |
+| 2026-11-14 | S-004 | ✅ done | Added `src/jobs/trialExpiry.queue.ts` with daily BullMQ job (`trial-expiry-check`) that runs at 01:00 UTC. Processes: 1) Sends 3-day and 1-day reminder emails before trial ends, 2) Moves expired trials to grace (sets `grace_ends_at` = 7 days), sends notification, 3) Moves expired grace to suspended, sends notification. Uses `emailService` with new templates (`trialExpiryReminder`, `trialExpired`, `trialSuspended`). 7 unit tests cover reminders, trial→grace, grace→suspended, full flow. 287 tests pass (23 suites), 90.01% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 
 The agent appends a row after each completed task.
