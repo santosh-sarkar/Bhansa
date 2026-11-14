@@ -1,0 +1,32 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true
+  },
+  "include": [
+    "unit/**/*.ts",
+    "integration/factories.test.ts",
+    "integration/tenantHelper.test.ts",
+    "integration/staff/invitations.spec.ts",
+    "integration/staff/staff.spec.ts",
+    "integration/health.test.ts",
+    "integration/swagger.test.ts",
+    "integration/auth/me.spec.ts",
+    "integration/auth/refresh.spec.ts",
+    "integration/auth/logout.spec.ts",
+    "integration/auth/verify-email.spec.ts",
+    "integration/auth/password-reset.spec.ts",
+    "integration/auth/accept-invite.spec.ts",
+    "unit/services/audit/audit.test.ts",
+    "unit/services/plans/plan.test.ts",
+    "integration/plans/subscription.spec.ts",
+    "unit/middlewares/subscriptionGuard.test.ts",
+    "integration/authz/permissions.spec.ts",
+    "../prisma/seedData.ts",
+    "../src/types/**/*.d.ts"
+  ],
+  "exclude": ["../node_modules", "../dist", "tests/integration/auth/register.test.ts"]
+}

@@ -1,0 +1,58 @@
+name: bansa
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bansa-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bansa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bansa_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-bansa}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bansa} -d ${POSTGRES_DB:-bansa}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_test:
+    image: postgres:16-alpine
+    container_name: bansa-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bansa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bansa_dev}
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-bansa_test}
+    ports:
+      - "${POSTGRES_TEST_PORT:-5433}:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bansa} -d ${POSTGRES_TEST_DB:-bansa_test}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: bansa-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  postgres_test_data:
+  redis_data:

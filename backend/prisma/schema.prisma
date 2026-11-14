@@ -1,0 +1,724 @@
+// Prisma schema for Bansa.
+// Models are PascalCase for the client API; database table and column names stay
+// snake_case, matching prisma/migrations and docs/DATABASE.md.
+// Objects Prisma cannot represent (CHECK constraints and partial unique indexes)
+// live in the migration SQL only. See docs/DATABASE.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// PLANS, ORGANIZATIONS, SUBSCRIPTIONS
+
+model Plan {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                 String         @unique
+  name                 String
+  price_monthly        Decimal        @default(0) @db.Decimal(10, 2)
+  currency             String         @default("NPR") @db.Char(3)
+  max_outlets          Int            @default(1)
+  max_staff            Int?
+  max_menu_items       Int?
+  multi_outlet_enabled Boolean        @default(false)
+  features             Json           @default("{}")
+  is_public            Boolean        @default(true)
+  created_at           DateTime       @default(now()) @db.Timestamptz(6)
+  subscriptions        Subscription[]
+
+  @@map("plans")
+}
+
+model Organization {
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String
+  slug                 String                @unique
+  status               OrgStatus             @default(active)
+  currency             String                @default("NPR") @db.Char(3)
+  created_at           DateTime              @default(now()) @db.Timestamptz(6)
+  deleted_at           DateTime?             @db.Timestamptz(6)
+  customPlanLeads      CustomPlanLead[]
+  ingredients          Ingredient[]
+  invitations          Invitation[]
+  menuCategories       MenuCategory[]
+  menuItems            MenuItem[]
+  outlets              Outlet[]
+  subscriptionPayments SubscriptionPayment[]
+  subscriptions        Subscription[]
+  users                User[]
+
+  @@map("organizations")
+}
+
+model Subscription {
+  id                      String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id         String                @db.Uuid
+  plan_id                 String                @db.Uuid
+  status                  SubscriptionStatus    @default(trialing)
+  trial_ends_at           DateTime?             @db.Timestamptz(6)
+  grace_ends_at           DateTime?             @db.Timestamptz(6)
+  current_period_end      DateTime?             @db.Timestamptz(6)
+  max_outlets_override    Int?
+  max_staff_override      Int?
+  max_menu_items_override Int?
+  external_customer_id    String?
+  external_sub_id         String?
+  created_at              DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime              @default(now()) @db.Timestamptz(6)
+  subscriptionPayments    SubscriptionPayment[]
+  organization            Organization          @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  plan                    Plan                  @relation(fields: [plan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("subscriptions")
+}
+
+model CustomPlanLead {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id String?       @db.Uuid
+  contact_name    String
+  contact_email   String        @db.Citext
+  outlet_count    Int?
+  message         String?
+  handled         Boolean       @default(false)
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  organization    Organization? @relation(fields: [organization_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@map("custom_plan_leads")
+}
+
+// OUTLETS
+
+model Outlet {
+  id                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id         String                   @db.Uuid
+  name                    String                   @default("Main Branch")
+  address                 String?
+  phone                   String?
+  timezone                String                   @default("UTC")
+  tax_percent             Decimal                  @default(13.00) @db.Decimal(5, 2)
+  service_charge_percent  Decimal                  @default(10.00) @db.Decimal(5, 2)
+  is_active               Boolean                  @default(true)
+  created_at              DateTime                 @default(now()) @db.Timestamptz(6)
+  deleted_at              DateTime?                @db.Timestamptz(6)
+  bills                   Bill[]
+  diningTables            DiningTable[]
+  invitations             Invitation[]
+  menuItemOutletOverrides MenuItemOutletOverride[]
+  notifications           Notification[]
+  orderItems              OrderItem[]
+  orders                  Order[]
+  paymentSettings         OutletPaymentSetting?
+  outletStock             OutletStock[]
+  organization            Organization             @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  payments                Payment[]
+  staffAssignments        StaffAssignment[]
+  stockMovements          StockMovement[]
+  tableSessions           TableSession[]
+  users                   User[]
+
+  @@index([organization_id], map: "idx_outlets_org")
+  @@map("outlets")
+}
+
+// USERS, ROLES, PERMISSIONS, ASSIGNMENTS
+
+model User {
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id      String?               @db.Uuid
+  email                String                @unique @db.Citext
+  password_hash        String
+  full_name            String
+  phone                String?
+  is_super_admin       Boolean               @default(false)
+  is_active            Boolean               @default(true)
+  last_login_at        DateTime?             @db.Timestamptz(6)
+  created_at           DateTime              @default(now()) @db.Timestamptz(6)
+  last_outlet_id       String?               @db.Uuid
+  email_verified_at    DateTime?             @db.Timestamptz(6)
+  authTokens           AuthToken[]
+  billsCancelled       Bill[]                @relation("BillCancelledBy")
+  billsCreated         Bill[]                @relation("BillCreatedBy")
+  invitations          Invitation[]
+  notifications        Notification[]
+  ordersConfirmed      Order[]               @relation("OrderConfirmedBy")
+  ordersPlaced         Order[]               @relation("OrderPlacedBy")
+  ordersRejected       Order[]               @relation("OrderRejectedBy")
+  payments             Payment[]
+  refreshTokens        RefreshToken[]
+  staffAssignments     StaffAssignment[]
+  stockMovements       StockMovement[]
+  subscriptionPayments SubscriptionPayment[]
+  lastOutlet           Outlet?               @relation(fields: [last_outlet_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  organization         Organization?         @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([organization_id], map: "idx_users_org")
+  @@map("users")
+}
+
+model Role {
+  id               Int               @id @default(autoincrement()) @db.SmallInt
+  code             String            @unique
+  name             String
+  invitations      Invitation[]
+  rolePermissions  RolePermission[]
+  staffAssignments StaffAssignment[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id              Int              @id @default(autoincrement()) @db.SmallInt
+  code            String           @unique
+  description     String?
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  role_id       Int        @db.SmallInt
+  permission_id Int        @db.SmallInt
+  permission    Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  role          Role       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([role_id, permission_id])
+  @@map("role_permissions")
+}
+
+model StaffAssignment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  outlet_id  String?  @db.Uuid
+  role_id    Int      @db.SmallInt
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  outlet     Outlet?  @relation(fields: [outlet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  role       Role     @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([outlet_id], map: "idx_assign_outlet")
+  @@map("staff_assignments")
+}
+
+model Invitation {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id String       @db.Uuid
+  outlet_id       String?      @db.Uuid
+  role_id         Int          @db.SmallInt
+  email           String       @db.Citext
+  token_hash      String
+  status          InviteStatus @default(pending)
+  invited_by      String?      @db.Uuid
+  expires_at      DateTime     @db.Timestamptz(6)
+  created_at      DateTime     @default(now()) @db.Timestamptz(6)
+  invitedByUser   User?        @relation(fields: [invited_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  outlet          Outlet?      @relation(fields: [outlet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  role            Role         @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([email], map: "idx_invites_email")
+  @@map("invitations")
+}
+
+model RefreshToken {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String         @db.Uuid
+  token_hash      String
+  expires_at      DateTime       @db.Timestamptz(6)
+  revoked_at      DateTime?      @db.Timestamptz(6)
+  created_at      DateTime       @default(now()) @db.Timestamptz(6)
+  family_id       String         @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  used_at         DateTime?      @db.Timestamptz(6)
+  replaced_by     String?        @db.Uuid
+  replacedByToken RefreshToken?  @relation("RefreshTokenRotation", fields: [replaced_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replacesTokens  RefreshToken[] @relation("RefreshTokenRotation")
+  user            User           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([family_id], map: "idx_refresh_family")
+  @@index([user_id], map: "idx_refresh_user")
+  @@map("refresh_tokens")
+}
+
+model AuthToken {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String    @db.Uuid
+  purpose    String
+  token_hash String
+  expires_at DateTime  @db.Timestamptz(6)
+  used_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id, purpose], map: "idx_auth_tokens_user")
+  @@map("auth_tokens")
+}
+
+// MENU
+
+model MenuCategory {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id String       @db.Uuid
+  name            String
+  sort_order      Int          @default(0)
+  is_active       Boolean      @default(true)
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  menuItems       MenuItem[]
+
+  @@index([organization_id], map: "idx_menu_cat_org")
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id              String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id String                   @db.Uuid
+  category_id     String                   @db.Uuid
+  name            String
+  description     String?
+  image_url       String?
+  base_price      Decimal                  @db.Decimal(10, 2)
+  is_veg          Boolean?
+  prep_time_min   Int?
+  is_active       Boolean                  @default(true)
+  sort_order      Int                      @default(0)
+  created_at      DateTime                 @default(now()) @db.Timestamptz(6)
+  deleted_at      DateTime?                @db.Timestamptz(6)
+  options         MenuItemOption[]
+  outletOverrides MenuItemOutletOverride[]
+  category        MenuCategory             @relation(fields: [category_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  organization    Organization             @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  orderItems      OrderItem[]
+  recipeItems     RecipeItem[]
+
+  @@index([organization_id, category_id], map: "idx_menu_items_org_cat")
+  @@map("menu_items")
+}
+
+model MenuItemOption {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  menu_item_id String   @db.Uuid
+  kind         String
+  name         String
+  price_delta  Decimal  @default(0) @db.Decimal(10, 2)
+  is_active    Boolean  @default(true)
+  menuItem     MenuItem @relation(fields: [menu_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([menu_item_id], map: "idx_options_item")
+  @@map("menu_item_options")
+}
+
+model MenuItemOutletOverride {
+  menu_item_id     String   @db.Uuid
+  outlet_id        String   @db.Uuid
+  price_override   Decimal? @db.Decimal(10, 2)
+  is_available     Boolean  @default(true)
+  auto_unavailable Boolean  @default(false)
+  menuItem         MenuItem @relation(fields: [menu_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  outlet           Outlet   @relation(fields: [outlet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([menu_item_id, outlet_id])
+  @@index([outlet_id], map: "idx_override_outlet")
+  @@map("menu_item_outlet_overrides")
+}
+
+// TABLES, QR, TABLE SESSIONS
+
+model DiningTable {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  outlet_id     String         @db.Uuid
+  label         String
+  seats         Int?
+  qr_token      String         @unique
+  status        TableStatus    @default(free)
+  is_active     Boolean        @default(true)
+  outlet        Outlet         @relation(fields: [outlet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  orders        Order[]
+  tableSessions TableSession[]
+
+  @@unique([outlet_id, label])
+  @@map("dining_tables")
+}
+
+model TableSession {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  outlet_id   String        @db.Uuid
+  table_id    String        @db.Uuid
+  status      SessionStatus @default(open)
+  guest_token String
+  opened_at   DateTime      @default(now()) @db.Timestamptz(6)
+  closed_at   DateTime?     @db.Timestamptz(6)
+  bills       Bill[]
+  orders      Order[]
+  outlet      Outlet        @relation(fields: [outlet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  table       DiningTable   @relation(fields: [table_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([outlet_id, status], map: "idx_sessions_outlet")
+  @@map("table_sessions")
+}
+
+// ORDERS
+
+model Order {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  outlet_id       String          @db.Uuid
+  order_number    Int
+  order_type      OrderType       @default(dine_in)
+  status          OrderStatus     @default(placed)
+  session_id      String?         @db.Uuid
+  table_id        String?         @db.Uuid
+  placed_by_user  String?         @db.Uuid
+  customer_name   String?
+  customer_phone  String?
+  notes           String?
+  subtotal        Decimal         @default(0) @db.Decimal(10, 2)
+  tax_amount      Decimal         @default(0) @db.Decimal(10, 2)
+  discount_amount Decimal         @default(0) @db.Decimal(10, 2)
+  total           Decimal         @default(0) @db.Decimal(10, 2)
+  confirmed_at    DateTime?       @db.Timestamptz(6)
+  cancelled_at    DateTime?       @db.Timestamptz(6)
+  cancel_reason   String?
+  created_at      DateTime        @default(now()) @db.Timestamptz(6)
+  confirmed_by    String?         @db.Uuid
+  rejected_by     String?         @db.Uuid
+  idempotency_key String?
+  business_date   DateTime        @default(dbgenerated("CURRENT_DATE")) @db.Date
+  items           OrderItem[]
+  confirmedByUser User?           @relation("OrderConfirmedBy", fields: [confirmed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  outlet          Outlet          @relation(fields: [outlet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  placedByUser    User?           @relation("OrderPlacedBy", fields: [placed_by_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rejectedByUser  User?           @relation("OrderRejectedBy", fields: [rejected_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  session         TableSession?   @relation(fields: [session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  table           DiningTable?    @relation(fields: [table_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  stockMovements  StockMovement[]
+
+  @@unique([outlet_id, business_date, order_number], map: "uq_orders_number_per_day")
+  @@index([outlet_id, created_at], map: "idx_orders_outlet_created")
+  @@index([outlet_id, status, created_at(sort: Desc)], map: "idx_orders_outlet_status")
+  @@index([session_id], map: "idx_orders_session")
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id     String          @db.Uuid
+  outlet_id    String          @db.Uuid
+  menu_item_id String          @db.Uuid
+  item_name    String
+  unit_price   Decimal         @db.Decimal(10, 2)
+  quantity     Int
+  options      Json            @default("[]")
+  line_total   Decimal         @db.Decimal(10, 2)
+  status       OrderItemStatus @default(placed)
+  notes        String?
+  menuItem     MenuItem        @relation(fields: [menu_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order        Order           @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  outlet       Outlet          @relation(fields: [outlet_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([order_id], map: "idx_order_items_order")
+  @@index([outlet_id, menu_item_id], map: "idx_order_items_outlet_item")
+  @@map("order_items")
+}
+
+// BILLS AND PAYMENTS
+
+model Bill {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  outlet_id       String        @db.Uuid
+  session_id      String?       @db.Uuid
+  invoice_number  String
+  subtotal        Decimal       @db.Decimal(10, 2)
+  tax_amount      Decimal       @db.Decimal(10, 2)
+  service_charge  Decimal       @default(0) @db.Decimal(10, 2)
+  discount_amount Decimal       @default(0) @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  paid_at         DateTime?     @db.Timestamptz(6)
+  created_by      String?       @db.Uuid
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  status          BillStatus    @default(open)
+  cancelled_at    DateTime?     @db.Timestamptz(6)
+  cancelled_by    String?       @db.Uuid
+  cancel_reason   String?
+  cancelledByUser User?         @relation("BillCancelledBy", fields: [cancelled_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdByUser   User?         @relation("BillCreatedBy", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  outlet          Outlet        @relation(fields: [outlet_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  session         TableSession? @relation(fields: [session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  payments        Payment[]
+
+  @@unique([outlet_id, invoice_number])
+  @@map("bills")
+}
+
+model Payment {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  outlet_id        String        @db.Uuid
+  bill_id          String        @db.Uuid
+  method           PaymentMethod
+  status           PaymentStatus @default(pending)
+  amount           Decimal       @db.Decimal(10, 2)
+  provider_ref     String?
+  idempotency_key  String?       @unique
+  recorded_by      String?       @db.Uuid
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+  transaction_uuid String?       @unique
+  raw_callback     Json?
+  verified_at      DateTime?     @db.Timestamptz(6)
+  bill             Bill          @relation(fields: [bill_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  outlet           Outlet        @relation(fields: [outlet_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  recordedByUser   User?         @relation(fields: [recorded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([bill_id], map: "idx_payments_bill")
+  @@map("payments")
+}
+
+model WebhookEvent {
+  id           String    @id
+  provider     String
+  payload      Json
+  processed_at DateTime? @db.Timestamptz(6)
+  received_at  DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@map("webhook_events")
+}
+
+// INVENTORY
+
+model Ingredient {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id String          @db.Uuid
+  name            String
+  unit            String
+  default_cost    Decimal?        @db.Decimal(10, 4)
+  is_active       Boolean         @default(true)
+  organization    Organization    @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  outletStock     OutletStock[]
+  recipeItems     RecipeItem[]
+  stockMovements  StockMovement[]
+
+  @@unique([organization_id, name])
+  @@map("ingredients")
+}
+
+model RecipeItem {
+  menu_item_id  String     @db.Uuid
+  ingredient_id String     @db.Uuid
+  quantity      Decimal    @db.Decimal(12, 3)
+  ingredient    Ingredient @relation(fields: [ingredient_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  menuItem      MenuItem   @relation(fields: [menu_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([menu_item_id, ingredient_id])
+  @@index([ingredient_id], map: "idx_recipe_ingredient")
+  @@map("recipe_items")
+}
+
+model OutletStock {
+  outlet_id     String     @db.Uuid
+  ingredient_id String     @db.Uuid
+  quantity      Decimal    @default(0) @db.Decimal(14, 3)
+  low_threshold Decimal    @default(0) @db.Decimal(14, 3)
+  updated_at    DateTime   @default(now()) @db.Timestamptz(6)
+  ingredient    Ingredient @relation(fields: [ingredient_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  outlet        Outlet     @relation(fields: [outlet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([outlet_id, ingredient_id])
+  @@map("outlet_stock")
+}
+
+model StockMovement {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  outlet_id       String        @db.Uuid
+  ingredient_id   String        @db.Uuid
+  type            StockMoveType
+  quantity_delta  Decimal       @db.Decimal(14, 3)
+  balance_after   Decimal       @db.Decimal(14, 3)
+  unit_cost       Decimal?      @db.Decimal(10, 4)
+  supplier        String?
+  reason          String?
+  order_id        String?       @db.Uuid
+  performed_by    String?       @db.Uuid
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  ingredient      Ingredient    @relation(fields: [ingredient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order           Order?        @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  outlet          Outlet        @relation(fields: [outlet_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  performedByUser User?         @relation(fields: [performed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([outlet_id, ingredient_id, created_at(sort: Desc)], map: "idx_stock_moves_lookup")
+  @@index([order_id], map: "idx_stock_moves_order")
+  @@map("stock_movements")
+}
+
+// NOTIFICATIONS AND AUDIT
+
+model Notification {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  outlet_id  String?   @db.Uuid
+  user_id    String?   @db.Uuid
+  type       String
+  payload    Json      @default("{}")
+  read_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  outlet     Outlet?   @relation(fields: [outlet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user       User?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id, read_at], map: "idx_notif_user")
+  @@map("notifications")
+}
+
+model AuditLog {
+  id              BigInt   @id @default(autoincrement())
+  organization_id String?  @db.Uuid
+  outlet_id       String?  @db.Uuid
+  user_id         String?  @db.Uuid
+  action          String
+  entity          String?
+  entity_id       String?  @db.Uuid
+  meta            Json?
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([organization_id, created_at(sort: Desc)], map: "idx_audit_org")
+  @@map("audit_logs")
+}
+
+// PAYMENT SETTINGS AND SUBSCRIPTION PAYMENTS
+
+model OutletPaymentSetting {
+  outlet_id            String   @id @db.Uuid
+  provider             String   @default("esewa")
+  product_code         String
+  secret_key_encrypted String
+  is_test_mode         Boolean  @default(true)
+  is_enabled           Boolean  @default(false)
+  updated_at           DateTime @default(now()) @db.Timestamptz(6)
+  outlet               Outlet   @relation(fields: [outlet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("outlet_payment_settings")
+}
+
+model SubscriptionPayment {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id String       @db.Uuid
+  subscription_id String       @db.Uuid
+  amount          Decimal      @db.Decimal(10, 2)
+  reference       String
+  status          String       @default("submitted")
+  period_months   Int          @default(1)
+  reviewed_by     String?      @db.Uuid
+  reviewed_at     DateTime?    @db.Timestamptz(6)
+  created_at      DateTime     @default(now()) @db.Timestamptz(6)
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  reviewedByUser  User?        @relation(fields: [reviewed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subscription    Subscription @relation(fields: [subscription_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("subscription_payments")
+}
+
+// ENUMS
+
+enum SubscriptionStatus {
+  trialing
+  active
+  grace
+  suspended
+  cancelled
+
+  @@map("subscription_status")
+}
+
+enum OrgStatus {
+  pending
+  active
+  suspended
+
+  @@map("org_status")
+}
+
+enum OrderType {
+  dine_in
+  takeaway
+  delivery
+
+  @@map("order_type")
+}
+
+enum OrderStatus {
+  pending_confirmation
+  placed
+  preparing
+  ready
+  served
+  completed
+  cancelled
+
+  @@map("order_status")
+}
+
+enum OrderItemStatus {
+  placed
+  preparing
+  ready
+  served
+  cancelled
+
+  @@map("order_item_status")
+}
+
+enum SessionStatus {
+  open
+  bill_requested
+  closed
+
+  @@map("session_status")
+}
+
+enum TableStatus {
+  free
+  occupied
+  needs_bill
+
+  @@map("table_status")
+}
+
+enum PaymentMethod {
+  cash
+  card
+  online
+
+  @@map("payment_method")
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+  refunded
+
+  @@map("payment_status")
+}
+
+enum StockMoveType {
+  restock
+  order_deduction
+  order_restore
+  adjustment
+  wastage
+
+  @@map("stock_move_type")
+}
+
+enum InviteStatus {
+  pending
+  accepted
+  expired
+  revoked
+
+  @@map("invite_status")
+}
+
+enum BillStatus {
+  open
+  paid
+  cancelled
+
+  @@map("bill_status")
+}

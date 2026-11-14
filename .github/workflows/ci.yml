@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  backend:
+    name: Backend (lint, type-check, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bansa
+          POSTGRES_PASSWORD: bansa_dev
+          POSTGRES_DB: bansa_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bansa -d bansa_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://bansa:bansa_dev@localhost:5432/bansa_test
+
+      - name: Run migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://bansa:bansa_dev@localhost:5432/bansa_test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+        env:
+          DATABASE_URL: postgresql://bansa:bansa_dev@localhost:5432/bansa_test
+          TEST_DATABASE_URL: postgresql://bansa:bansa_dev@localhost:5432/bansa_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          APP_URL: http://localhost:4000
+          FRONTEND_URL: http://localhost:3000
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+          COOKIE_DOMAIN: localhost
+
+  frontend:
+    name: Frontend (placeholder)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check || echo "Frontend not yet implemented"
+
+      - name: Lint
+        run: npm run lint || echo "Frontend not yet implemented"
+
+      - name: Format check
+        run: npm run format:check || echo "Frontend not yet implemented"
+
+      - name: Build
+        run: npm run build || echo "Frontend not yet implemented"
+
+      - name: Test
+        run: npm test || echo "Frontend not yet implemented"
