@@ -109,3 +109,4 @@ The agent must ask about these **before** the task listed in "Needed by". Recomm
 | 2026-11-10 | D-042 | Prisma 6.19.3 chosen over 7.x (ESM and driver-adapter requirements) and 8 (release candidate) |
 | 2026-11-10 | D-043 to D-046 | Schema and seed alignment approved: NPR currency with placeholder prices, 13%/10% outlet defaults, waiter cancel permission, bill cancellation state |
 | 2026-11-10 | PD-021 | Added missing invoice title and IRD compliance decision referenced by `DESIGN.md` |
+| 2026-11-14 | D-063 | Custom plan request endpoint (`POST /api/v1/plans/subscription/custom-plan-request`) creates a `CustomPlanLead` with `contact_name`, `contact_email`, optional `outlet_count` (1-100), optional `message`. Organization auto-filled from authenticated user. Auth + outlet header required. Validation: email format, name 1-100 chars, outlet_count 1-100, message 2000 chars max. | Implements SUB-03 "Custom plan contact form creates a lead" |

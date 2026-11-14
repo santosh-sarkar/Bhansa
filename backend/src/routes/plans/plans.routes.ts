@@ -2,11 +2,14 @@ import { Router } from 'express';
 import { z } from 'zod';
 
 import { getSubscriptionController } from '@/controllers/plans/subscription.controller';
+import { customPlanRequestController } from '@/controllers/plans/custom-plan-request.controller';
 import { registry } from '@/docs/openapi';
 import { authMiddleware } from '@/middlewares/auth';
 import { outletContextMiddleware } from '@/middlewares/outletContext';
 import { requirePermission } from '@/middlewares/permission';
+import { validate } from '@/middlewares/validate';
 import { subscriptionDetailSchema } from '@/validations/plans/subscription.schema';
+import { customPlanRequestSchema } from '@/validations/plans/custom-plan-request.schema';
 
 const plansRouter = Router();
 
@@ -26,6 +29,45 @@ const errorResponse = (description: string) => ({
 });
 
 const outletHeaders = z.object({ 'X-Outlet-Id': z.string().uuid() });
+
+const customPlanRequestResponseSchema = z.object({
+  id: z.string().uuid(),
+  contact_name: z.string(),
+  contact_email: z.string().email(),
+  outlet_count: z.number().int().nullable(),
+  message: z.string().nullable(),
+  handled: z.boolean(),
+  created_at: z.string().datetime(),
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/v1/subscription/custom-plan-request',
+  tags: ['Subscription'],
+  summary: 'Request a custom plan',
+  description:
+    'Submits a custom plan request (lead) with contact details, desired outlet count, and an optional message. The organization is derived from the authenticated user.',
+  security: [{ cookieAuth: [] }],
+  request: {
+    headers: outletHeaders,
+    body: {
+      content: {
+        'application/json': {
+          schema: customPlanRequestSchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    201: successResponse(
+      'Custom plan request submitted',
+      z.object({ lead: customPlanRequestResponseSchema }),
+    ),
+    400: errorResponse('Validation error'),
+    401: errorResponse('Unauthenticated'),
+    403: errorResponse('Permission denied'),
+  },
+});
 
 registry.registerPath({
   method: 'get',
@@ -50,5 +92,10 @@ registry.registerPath({
 plansRouter.use(authMiddleware, outletContextMiddleware);
 
 plansRouter.get('/subscription', requirePermission('billing.manage'), getSubscriptionController);
+plansRouter.post(
+  '/subscription/custom-plan-request',
+  validate({ body: customPlanRequestSchema.shape.body }),
+  customPlanRequestController,
+);
 
 export { plansRouter };
