@@ -35,7 +35,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 ⬜ todo · 🟡 in progress · ⛔ blocked (waiting for user decision) · ✅ done
 
-**Current task:** `M-001` (Category CRUD org level).
+**Current task:** `M-002` (Menu item CRUD org level, soft delete) with plan limit check.
 
 ### Before starting a task, the agent must
 
@@ -123,7 +123,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | ID | Task | Depends | Needs decision | Status |
 |---|---|---|---|---|
 | M-001 | Category CRUD (org level) | A-009 | | ✅ |
-| M-002 | Menu item CRUD (org level, soft delete) with plan limit check | M-001, S-006 | | ⬜ |
+| M-002 | Menu item CRUD (org level, soft delete) with plan limit check | M-001, S-006 | | ✅ |
 | M-003 | Variants and add-ons (`menu_item_options`) | M-002 | | ⬜ |
 | M-004 | Image upload to Cloudinary (type and size limits) | M-002 | | ⬜ |
 | M-005 | Per-outlet override (price, availability) | M-002, A-010 | PD-018 | ⬜ |
@@ -314,5 +314,6 @@ Multi-outlet is in v1, but the outlet-context middleware exists from A-010 onwar
 | 2026-11-19 | TB-002 | ✅ done | Added `GET /api/v1/public/tables/:qrToken` public endpoint to resolve QR token to table, outlet, and effective menu. Returns table details, outlet info, and effective menu with categories and items (including outlet price overrides). Handles inactive/deleted outlets, cross-tenant access, and invalid tokens. 10 integration tests cover valid resolution, error cases (404/400/401), and menu resolution. 387 tests pass (27 suites), 87.76% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 | 2026-11-19 | TB-003 | ✅ done | Added `GET /api/v1/outlets/:outletId/tables/:id/qr` endpoint to return QR code image (PNG) for a table. Uses `qrcode` library (per PD-006). Requires authentication and outlet context. Owner, Manager, and Waiter can access. 6 integration tests cover owner/manager/waiter access, cross-tenant rejection, 404 for non-existent table, 400 for invalid UUID. 393 tests pass (27 suites), 87.76% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 | 2026-11-19 | M-001 | ✅ done | Added Category CRUD endpoints under `/api/v1/menu/categories`: GET (list with pagination/filtering), GET by ID, POST (create), PATCH (update), DELETE (soft delete). Requires `menu.edit` permission (Owner/Manager). Uses new `requireOrgPermission` middleware for org-level permissions. 34 integration tests cover CRUD, filters, permissions, tenant isolation. 34 tests pass. Type-check, lint, format:check and build pass. |
+| 2026-11-19 | M-002 | ✅ done | Added Menu Item CRUD endpoints under `/api/v1/menu/items`: GET (list with pagination/filtering by category, active status, vegetarian, search), GET by ID, POST (create), PATCH (update), DELETE (soft delete). Requires `menu.edit` permission (Owner/Manager). Plan-gated by `max_menu_items` via `planLimitMiddleware`. 40 integration tests cover CRUD, filters, permissions, plan limit, tenant isolation. 40 tests pass. Type-check, lint, format:check and build pass. |
 
 The agent appends a row after each completed task.

@@ -50,6 +50,55 @@ export interface PaginatedCategories {
   totalPages: number;
 }
 
+export interface MenuItemListItem {
+  id: string;
+  organization_id: string;
+  category_id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  base_price: Prisma.Decimal;
+  is_veg: boolean | null;
+  prep_time_min: number | null;
+  is_active: boolean;
+  sort_order: number;
+  created_at: Date;
+  _count?: {
+    options: number;
+    outletOverrides: number;
+  };
+}
+
+export interface MenuItemDetail extends MenuItemListItem {
+  options?: Array<{
+    id: string;
+    kind: string;
+    name: string;
+    price_delta: Prisma.Decimal;
+    is_active: boolean;
+  }>;
+  outletOverrides?: Array<{
+    menu_item_id: string;
+    outlet_id: string;
+    price_override: Prisma.Decimal | null;
+    is_available: boolean;
+    auto_unavailable: boolean;
+  }>;
+  category?: {
+    id: string;
+    name: string;
+    is_active: boolean;
+  };
+}
+
+export interface PaginatedMenuItems {
+  items: MenuItemListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 /**
  * Lists menu categories for an organization.
  * Organization-wide access (Owner) sees all categories.
@@ -423,4 +472,490 @@ export async function getEffectiveMenuForOutlet(outletId: string): Promise<Effec
   }
 
   return { categories };
+}
+
+/**
+ * Lists menu items for an organization.
+ * Organization-wide access (Owner) sees all items.
+ * Managers see items for outlets they manage.
+ */
+export async function listMenuItems(
+  actor: StaffActor,
+  filters: {
+    page: number;
+    limit: number;
+    category_id?: string;
+    is_active?: boolean;
+    is_veg?: boolean;
+    search?: string;
+  },
+): Promise<PaginatedMenuItems> {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  // Menu items are organization-level, permission check is done in middleware
+
+  const where: Record<string, unknown> = {
+    organization_id: actor.organization_id,
+  };
+
+  if (filters.category_id) {
+    where.category_id = filters.category_id;
+  }
+
+  if (filters.is_active !== undefined) {
+    where.is_active = filters.is_active;
+  }
+
+  if (filters.is_veg !== undefined) {
+    where.is_veg = filters.is_veg;
+  }
+
+  if (filters.search) {
+    where.name = { contains: filters.search, mode: 'insensitive' };
+  }
+
+  const [items, total] = await Promise.all([
+    prisma.menuItem.findMany({
+      where,
+      select: {
+        id: true,
+        organization_id: true,
+        category_id: true,
+        name: true,
+        description: true,
+        image_url: true,
+        base_price: true,
+        is_veg: true,
+        prep_time_min: true,
+        is_active: true,
+        sort_order: true,
+        created_at: true,
+        _count: {
+          select: { options: true, outletOverrides: true },
+        },
+      },
+      orderBy: [{ category_id: 'asc' }, { sort_order: 'asc' }],
+      skip: (filters.page - 1) * filters.limit,
+      take: filters.limit,
+    }),
+    prisma.menuItem.count({ where }),
+  ]);
+
+  return {
+    items,
+    total,
+    page: filters.page,
+    limit: filters.limit,
+    totalPages: Math.ceil(total / filters.limit),
+  };
+}
+
+/**
+ * Gets a single menu item by ID.
+ */
+export async function getMenuItem(actor: StaffActor, itemId: string): Promise<MenuItemDetail> {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  const item = await prisma.menuItem.findFirst({
+    where: {
+      id: itemId,
+      organization_id: actor.organization_id,
+    },
+    select: {
+      id: true,
+      organization_id: true,
+      category_id: true,
+      name: true,
+      description: true,
+      image_url: true,
+      base_price: true,
+      is_veg: true,
+      prep_time_min: true,
+      is_active: true,
+      sort_order: true,
+      created_at: true,
+      options: {
+        where: { is_active: true },
+        select: {
+          id: true,
+          kind: true,
+          name: true,
+          price_delta: true,
+          is_active: true,
+        },
+        orderBy: { id: 'asc' },
+      },
+      outletOverrides: {
+        select: {
+          menu_item_id: true,
+          outlet_id: true,
+          price_override: true,
+          is_available: true,
+          auto_unavailable: true,
+        },
+      },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          is_active: true,
+        },
+      },
+    },
+  });
+
+  if (!item) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  return item;
+}
+
+/**
+ * Creates a new menu item for an organization.
+ * Requires menu.edit permission.
+ * Plan-gated by max_menu_items limit.
+ */
+export async function createMenuItem(
+  actor: StaffActor,
+  input: {
+    category_id: string;
+    name: string;
+    description?: string;
+    image_url?: string;
+    base_price: number;
+    is_veg?: boolean;
+    prep_time_min?: number;
+    sort_order?: number;
+  },
+): Promise<MenuItemDetail> {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  const { organizationWide, outletIds } = await getManageableOutletIds(actor);
+
+  if (!organizationWide && outletIds.length === 0) {
+    throw new AppError('FORBIDDEN', 'No outlet access to manage menu items', 403);
+  }
+
+  // Verify category exists in organization
+  const category = await prisma.menuCategory.findFirst({
+    where: {
+      id: input.category_id,
+      organization_id: actor.organization_id,
+    },
+  });
+
+  if (!category) {
+    throw new AppError('NOT_FOUND', 'Category not found', 404);
+  }
+
+  // Check if item with same name exists in same category
+  const existing = await prisma.menuItem.findFirst({
+    where: {
+      organization_id: actor.organization_id,
+      category_id: input.category_id,
+      name: input.name,
+    },
+  });
+
+  if (existing) {
+    throw new AppError('CONFLICT', 'Menu item with this name already exists in this category', 409);
+  }
+
+  const item = await prisma.menuItem.create({
+    data: {
+      organization_id: actor.organization_id,
+      category_id: input.category_id,
+      name: input.name,
+      description: input.description ?? null,
+      image_url: input.image_url ?? null,
+      base_price: input.base_price,
+      is_veg: input.is_veg ?? null,
+      prep_time_min: input.prep_time_min ?? null,
+      sort_order: input.sort_order ?? 0,
+      is_active: true,
+    },
+    select: {
+      id: true,
+      organization_id: true,
+      category_id: true,
+      name: true,
+      description: true,
+      image_url: true,
+      base_price: true,
+      is_veg: true,
+      prep_time_min: true,
+      is_active: true,
+      sort_order: true,
+      created_at: true,
+      options: {
+        where: { is_active: true },
+        select: {
+          id: true,
+          kind: true,
+          name: true,
+          price_delta: true,
+          is_active: true,
+        },
+        orderBy: { id: 'asc' },
+      },
+      outletOverrides: {
+        select: {
+          menu_item_id: true,
+          outlet_id: true,
+          price_override: true,
+          is_available: true,
+          auto_unavailable: true,
+        },
+      },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          is_active: true,
+        },
+      },
+    },
+  });
+
+  return item;
+}
+
+/**
+ * Updates a menu item.
+ */
+export async function updateMenuItem(
+  actor: StaffActor,
+  itemId: string,
+  input: {
+    category_id?: string;
+    name?: string;
+    description?: string | null;
+    image_url?: string | null;
+    base_price?: number;
+    is_veg?: boolean;
+    prep_time_min?: number;
+    sort_order?: number;
+    is_active?: boolean;
+  },
+): Promise<MenuItemDetail> {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  const { organizationWide, outletIds } = await getManageableOutletIds(actor);
+
+  if (!organizationWide && outletIds.length === 0) {
+    throw new AppError('FORBIDDEN', 'No outlet access to manage menu items', 403);
+  }
+
+  // Check if item exists in organization
+  const existing = await prisma.menuItem.findFirst({
+    where: {
+      id: itemId,
+      organization_id: actor.organization_id,
+    },
+  });
+
+  if (!existing) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  // Verify category exists if changing
+  if (input.category_id !== undefined && input.category_id !== existing.category_id) {
+    const category = await prisma.menuCategory.findFirst({
+      where: {
+        id: input.category_id,
+        organization_id: actor.organization_id,
+      },
+    });
+
+    if (!category) {
+      throw new AppError('NOT_FOUND', 'Category not found', 404);
+    }
+
+    // Check name uniqueness in new category
+    if (input.name !== undefined && input.name !== existing.name) {
+      const duplicate = await prisma.menuItem.findFirst({
+        where: {
+          organization_id: actor.organization_id,
+          category_id: input.category_id,
+          name: input.name,
+          id: { not: itemId },
+        },
+      });
+
+      if (duplicate) {
+        throw new AppError(
+          'CONFLICT',
+          'Menu item with this name already exists in this category',
+          409,
+        );
+      }
+    }
+  } else if (input.name !== undefined && input.name !== existing.name) {
+    // Check name uniqueness in current category
+    const duplicate = await prisma.menuItem.findFirst({
+      where: {
+        organization_id: actor.organization_id,
+        category_id: existing.category_id,
+        name: input.name,
+        id: { not: itemId },
+      },
+    });
+
+    if (duplicate) {
+      throw new AppError(
+        'CONFLICT',
+        'Menu item with this name already exists in this category',
+        409,
+      );
+    }
+  }
+
+  const data: Record<string, unknown> = {};
+
+  if (input.category_id !== undefined) data.category_id = input.category_id;
+  if (input.name !== undefined) data.name = input.name;
+  if (input.description !== undefined) data.description = input.description;
+  if (input.image_url !== undefined) data.image_url = input.image_url;
+  if (input.base_price !== undefined) data.base_price = input.base_price;
+  if (input.is_veg !== undefined) data.is_veg = input.is_veg;
+  if (input.prep_time_min !== undefined) data.prep_time_min = input.prep_time_min;
+  if (input.sort_order !== undefined) data.sort_order = input.sort_order;
+  if (input.is_active !== undefined) data.is_active = input.is_active;
+
+  const item = await prisma.menuItem.update({
+    where: { id: itemId },
+    data,
+    select: {
+      id: true,
+      organization_id: true,
+      category_id: true,
+      name: true,
+      description: true,
+      image_url: true,
+      base_price: true,
+      is_veg: true,
+      prep_time_min: true,
+      is_active: true,
+      sort_order: true,
+      created_at: true,
+      options: {
+        where: { is_active: true },
+        select: {
+          id: true,
+          kind: true,
+          name: true,
+          price_delta: true,
+          is_active: true,
+        },
+        orderBy: { id: 'asc' },
+      },
+      outletOverrides: {
+        select: {
+          menu_item_id: true,
+          outlet_id: true,
+          price_override: true,
+          is_available: true,
+          auto_unavailable: true,
+        },
+      },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          is_active: true,
+        },
+      },
+    },
+  });
+
+  return item;
+}
+
+/**
+ * Deletes (soft delete) a menu item.
+ * Sets is_active=false and deleted_at.
+ */
+export async function deleteMenuItem(actor: StaffActor, itemId: string): Promise<MenuItemDetail> {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  const { organizationWide, outletIds } = await getManageableOutletIds(actor);
+
+  if (!organizationWide && outletIds.length === 0) {
+    throw new AppError('FORBIDDEN', 'No outlet access to manage menu items', 403);
+  }
+
+  // Check if item exists in organization
+  const existing = await prisma.menuItem.findFirst({
+    where: {
+      id: itemId,
+      organization_id: actor.organization_id,
+    },
+  });
+
+  if (!existing) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  // Soft delete by setting is_active=false and deleted_at
+  const item = await prisma.menuItem.update({
+    where: { id: itemId },
+    data: {
+      is_active: false,
+      deleted_at: new Date(),
+    },
+    select: {
+      id: true,
+      organization_id: true,
+      category_id: true,
+      name: true,
+      description: true,
+      image_url: true,
+      base_price: true,
+      is_veg: true,
+      prep_time_min: true,
+      is_active: true,
+      sort_order: true,
+      created_at: true,
+      options: {
+        where: { is_active: true },
+        select: {
+          id: true,
+          kind: true,
+          name: true,
+          price_delta: true,
+          is_active: true,
+        },
+        orderBy: { id: 'asc' },
+      },
+      outletOverrides: {
+        select: {
+          menu_item_id: true,
+          outlet_id: true,
+          price_override: true,
+          is_available: true,
+          auto_unavailable: true,
+        },
+      },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          is_active: true,
+        },
+      },
+    },
+  });
+
+  return item;
 }

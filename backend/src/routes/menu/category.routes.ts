@@ -196,7 +196,7 @@ categoryRouter.use(authMiddleware);
 
 // List categories - requires menu.edit permission (organization-wide)
 categoryRouter.get(
-  '/categories',
+  '/',
   requireOrgPermission('menu.edit'),
   validate({ query: listCategoriesSchema.shape.query }),
   listCategoriesController,
@@ -204,7 +204,7 @@ categoryRouter.get(
 
 // Get category details - requires menu.edit permission (organization-wide)
 categoryRouter.get(
-  '/categories/:id',
+  '/:id',
   requireOrgPermission('menu.edit'),
   validate({ params: categoryIdSchema.shape.params }),
   getCategoryController,
@@ -212,7 +212,7 @@ categoryRouter.get(
 
 // Create category - requires menu.edit permission (organization-wide)
 categoryRouter.post(
-  '/categories',
+  '/',
   requireOrgPermission('menu.edit'),
   validate({ body: createCategorySchema.shape.body }),
   createCategoryController,
@@ -220,7 +220,7 @@ categoryRouter.post(
 
 // Update category - requires menu.edit permission (organization-wide)
 categoryRouter.patch(
-  '/categories/:id',
+  '/:id',
   requireOrgPermission('menu.edit'),
   validate({ params: categoryIdSchema.shape.params, body: updateCategorySchema.shape.body }),
   updateCategoryController,
@@ -228,7 +228,7 @@ categoryRouter.patch(
 
 // Delete category - requires menu.edit permission (organization-wide)
 categoryRouter.delete(
-  '/categories/:id',
+  '/:id',
   requireOrgPermission('menu.edit'),
   validate({ params: categoryIdSchema.shape.params }),
   deleteCategoryController,
