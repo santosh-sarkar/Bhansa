@@ -35,7 +35,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 ⬜ todo · 🟡 in progress · ⛔ blocked (waiting for user decision) · ✅ done
 
-**Current task:** `TB-001` (Table CRUD per outlet).
+**Current task:** `TB-002` (QR token generation and regeneration) — implementation in progress.
 
 ### Before starting a task, the agent must
 
@@ -112,7 +112,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | O-003 | Create outlet (Owner, plan-gated by `max_outlets`) | S-006, O-001 | | ✅ |
 | O-004 | Deactivate outlet (blocks new orders, keeps history) | O-003 | | ✅ |
 | O-005 | Save last active outlet (`PATCH /me/active-outlet`, Owner and Manager only) | A-010 | | ✅ |
-| TB-001 | Table CRUD per outlet | A-010 | | ⬜ |
+| TB-001 | Table CRUD per outlet | A-010 | | ✅ |
 | TB-002 | QR token generation and regeneration | TB-001 | | ⬜ |
 | TB-003 | QR image endpoint | TB-002 | PD-006 | ⬜ |
 
@@ -310,5 +310,6 @@ Multi-outlet is in v1, but the outlet-context middleware exists from A-010 onwar
 | 2026-11-19 | O-003 | ✅ done | Added `POST /api/v1/outlets` endpoint (create outlet). Owner only, plan-gated by `max_outlets` limit via planLimitMiddleware. Returns 403 `PLAN_LIMIT_REACHED` when limit exceeded. Validation for name, address, phone, timezone, tax_percent, service_charge_percent. 9 integration tests cover owner creation, minimal fields, role restrictions, validation rules, and plan limit enforcement. 335 tests pass (25 suites), 87.98% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 | 2026-11-19 | O-004 | ✅ done | Added `PATCH /api/v1/outlets/:id/deactivate` endpoint (deactivate outlet). Sets `is_active=false` which blocks new orders while keeping history. Owner only; Manager/Waiter/Kitchen rejected with 403. Cross-tenant access returns 403. 3 integration tests cover owner deactivation, manager rejection, cross-tenant rejection. 335 tests pass (25 suites), 87.98% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 | 2026-11-19 | O-005 | ✅ done | Added `PATCH /api/v1/outlets/me/active-outlet` endpoint (save last active outlet). Owner can set any outlet in their organization. Manager can only set outlets they are assigned to. Updates user's `last_outlet_id`. Requires `outlet_id` in body. 8 integration tests cover owner/manager setting, cross-tenant rejection, unassigned outlet rejection, 404/400/401 errors. 343 tests pass (25 suites), 88.12% coverage (80% threshold). Type-check, lint, format:check and build pass. |
+| 2026-11-19 | TB-001 | ✅ done | Added Table CRUD per outlet endpoints under `/api/v1/outlets/:outletId/tables`. GET (list with pagination/filtering), GET by ID, POST (create), PATCH (update), DELETE (deactivate), POST regenerate-qr. Owner/Manager with `tables.manage` can create/update/deactivate/regenerate QR. Waiter/Kitchen can list/get. QR token auto-generated on create, regenerable. All endpoints require `X-Outlet-Id` header. 34 integration tests cover CRUD, QR regen, filters, permissions, tenant isolation. 377 tests pass (26 suites), 87.51% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 
 The agent appends a row after each completed task.

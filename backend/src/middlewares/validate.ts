@@ -51,7 +51,9 @@ export function validate(schemas: ValidationSchemas): RequestHandler {
     }
 
     if (parsed.has('params')) {
-      req.params = parsed.get('params') as Request['params'];
+      // Merge validated params with existing params to preserve parent router params (mergeParams)
+      const validatedParams = parsed.get('params') as Record<string, string>;
+      req.params = { ...req.params, ...validatedParams } as Request['params'];
     }
 
     if (parsed.has('query')) {

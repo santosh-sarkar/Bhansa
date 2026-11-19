@@ -9,6 +9,7 @@ import {
   deactivateOutletController,
   setActiveOutletController,
 } from '@/controllers/outlets/outlet.controller';
+import { tablesRouter } from '@/routes/tables/tables.routes';
 import { registry } from '@/docs/openapi';
 import { authMiddleware } from '@/middlewares/auth';
 import { outletContextMiddleware } from '@/middlewares/outletContext';
@@ -23,7 +24,7 @@ import {
 } from '@/validations/outlets/outlet.schema';
 import { setActiveOutletSchema } from '@/validations/outlets/active-outlet.schema';
 
-const outletsRouter = Router();
+const outletsRouter = Router({ mergeParams: true });
 
 const errorSchema = z.object({
   success: z.literal(false),
@@ -275,5 +276,8 @@ outletsRouter.patch(
   validate({ body: setActiveOutletSchema.shape.body }),
   setActiveOutletController,
 );
+
+// Nested tables routes
+outletsRouter.use('/:outletId/tables', tablesRouter);
 
 export { outletsRouter };
