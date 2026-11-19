@@ -349,6 +349,33 @@ describe('Outlets API', () => {
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
+
+    it('rejects when plan max_outlets limit is reached', async () => {
+      // Create a fresh org with max_outlets = 1 (single plan default)
+      const { tenantA: freshTenant } = await createIsolatedTenants();
+      const plan = await prisma.plan.findUniqueOrThrow({ where: { code: 'single' } });
+      await prisma.subscription.create({
+        data: {
+          organization_id: freshTenant.organization.id,
+          plan_id: plan.id,
+          status: 'trialing',
+          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+          // No override, so max_outlets = 1 (single plan default)
+        },
+      });
+      const freshSession = await createSession(freshTenant.users.owner, freshTenant.outlet.id);
+      const freshApi = tenantApi(app, freshSession);
+
+      // Try to create a second outlet - should fail with PLAN_LIMIT_REACHED
+      const res = await freshApi.post('/api/v1/outlets', {
+        name: 'Second Outlet',
+      });
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+      expect(res.body.error.code).toBe('PLAN_LIMIT_REACHED');
+      expect(res.body.error.details.resource).toBe('outlet');
+    });
   });
 
   describe('PATCH /api/v1/outlets/:id', () => {

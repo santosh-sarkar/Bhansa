@@ -30,6 +30,7 @@ This is the **planned** endpoint list. The agent must not add, rename or remove 
 - **Custom plan request:** `POST /api/v1/plans/subscription/custom-plan-request` creates a lead (`CustomPlanLead`) with `contact_name`, `contact_email`, optional `outlet_count` (1-100), and optional `message`. Organization ID is auto-filled from authenticated user. Protected by auth + outlet header. Validation rejects invalid emails, empty names, out-of-range outlet_count, and overlong fields.
 - **Plan limit middleware:** `planLimitMiddleware('outlet'|'staff'|'menuItem')` in `src/middlewares/planLimit.ts` checks plan limits before resource creation. Returns 403 `PLAN_LIMIT_REACHED` with current usage and limit details. Attaches `req.planLimitInfo` for controller use. Used by outlet creation, staff creation, and menu item creation endpoints.
 - **Outlet update:** `PATCH /api/v1/outlets/:id` updates outlet profile and settings (name, address, phone, timezone, tax_percent, service_charge_percent, is_active). Owner can update all fields; Manager with `tables.manage` permission can update assigned outlets. Requires `X-Outlet-Id` header.
+- **Outlet creation:** `POST /api/v1/outlets` creates a new outlet. Owner only, plan-gated by `max_outlets` limit via `planLimitMiddleware`. Returns 403 `PLAN_LIMIT_REACHED` when limit exceeded. Validation for name, address, phone, timezone, tax_percent, service_charge_percent. Requires `X-Outlet-Id` header.
 
 ---
 

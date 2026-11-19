@@ -35,7 +35,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 ⬜ todo · 🟡 in progress · ⛔ blocked (waiting for user decision) · ✅ done
 
-**Current task:** `O-003` (Create outlet - Owner, plan-gated by `max_outlets`).
+**Current task:** `O-004` (Deactivate outlet).
 
 ### Before starting a task, the agent must
 
@@ -109,7 +109,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 |---|---|---|---|---|
 | O-001 | List and get outlets the user can access | A-010 | | ✅ |
 | O-002 | Update outlet profile and settings (address, phone, timezone, VAT, service charge) | O-001 | | ✅ |
-| O-003 | Create outlet (Owner, plan-gated by `max_outlets`) | S-006, O-001 | | ⬜ |
+| O-003 | Create outlet (Owner, plan-gated by `max_outlets`) | S-006, O-001 | | ✅ |
 | O-004 | Deactivate outlet (blocks new orders, keeps history) | O-003 | | ⬜ |
 | O-005 | Save last active outlet (`PATCH /me/active-outlet`, Owner and Manager only) | A-010 | | ⬜ |
 | TB-001 | Table CRUD per outlet | A-010 | | ⬜ |
@@ -307,5 +307,6 @@ Multi-outlet is in v1, but the outlet-context middleware exists from A-010 onwar
 | 2026-11-14 | S-006 | ✅ done | Added plan-limit check helper exports and middleware. Created `src/services/plans/index.ts` exporting `getLimits`, `canCreateOutlet`, `canAddStaff`, `canAddMenuItem` for easy imports. Created `src/middlewares/planLimit.ts` middleware factory (`planLimitMiddleware('outlet'|'staff'|'menuItem')`) that checks limits before resource creation and returns 403 `PLAN_LIMIT_REACHED` with details. Ready for use by O-003 (outlet creation), staff creation, and M-002 (menu item CRUD). 298 tests pass (24 suites), 87.91% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 | 2026-11-19 | O-001 | ✅ done | Added `GET /api/v1/outlets` (list outlets user can access) and `GET /api/v1/outlets/:id` (get outlet details) endpoints. Owner sees all organization outlets; Manager/Waiter/Kitchen see only assigned outlets. Supports pagination, `is_active` filter, and search. 32 integration tests cover listing, pagination, filters, tenant isolation, cross-tenant rejection, and access control. 334 tests pass (25 suites), 87.98% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 | 2026-11-19 | O-002 | ✅ done | Added `PATCH /api/v1/outlets/:id` endpoint (update outlet profile and settings). Owner can update all fields; Manager with `tables.manage` permission can update assigned outlets. Fields: name, address, phone, timezone, tax_percent (VAT), service_charge_percent, is_active. 5 integration tests cover owner updates, manager updates, tax/service charge, is_active, cross-tenant rejection. 334 tests pass (25 suites), 87.98% coverage (80% threshold). Type-check, lint, format:check and build pass. |
+| 2026-11-19 | O-003 | ✅ done | Added `POST /api/v1/outlets` endpoint (create outlet). Owner only, plan-gated by `max_outlets` limit via planLimitMiddleware. Returns 403 `PLAN_LIMIT_REACHED` when limit exceeded. Validation for name, address, phone, timezone, tax_percent, service_charge_percent. 9 integration tests cover owner creation, minimal fields, role restrictions, validation rules, and plan limit enforcement. 335 tests pass (25 suites), 87.98% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 
 The agent appends a row after each completed task.
