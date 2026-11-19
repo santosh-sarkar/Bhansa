@@ -8,6 +8,7 @@ import {
   updateTableController,
   deactivateTableController,
   regenerateQrTokenController,
+  getTableQrImageController,
 } from '@/controllers/tables/table.controller';
 import { registry } from '@/docs/openapi';
 import { authMiddleware } from '@/middlewares/auth';
@@ -204,6 +205,33 @@ registry.registerPath({
   },
 });
 
+registry.registerPath({
+  method: 'get',
+  path: '/api/v1/outlets/{outletId}/tables/{id}/qr',
+  tags: ['Tables'],
+  summary: 'Get QR code image for table',
+  description:
+    'Returns a PNG image of the QR code for the table. The QR code contains the table token.',
+  security: [{ cookieAuth: [] }],
+  request: {
+    headers: outletHeaders,
+    params: tableIdSchema.shape.params,
+  },
+  responses: {
+    200: {
+      description: 'QR code image (PNG)',
+      content: {
+        'image/png': {
+          schema: { type: 'string', format: 'binary' },
+        },
+      },
+    },
+    401: errorResponse('Unauthenticated'),
+    403: errorResponse('Forbidden or outlet access denied'),
+    404: errorResponse('Table not found'),
+  },
+});
+
 // All routes require authentication
 tablesRouter.use(authMiddleware);
 
@@ -257,6 +285,14 @@ tablesRouter.post(
   outletContextMiddleware,
   requirePermission('tables.manage'),
   regenerateQrTokenController,
+);
+
+// Get QR code image
+tablesRouter.get(
+  '/:id/qr',
+  validate({ params: tableIdSchema.shape.params }),
+  outletContextMiddleware,
+  getTableQrImageController,
 );
 
 export { tablesRouter };

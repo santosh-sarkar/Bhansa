@@ -9,6 +9,7 @@ import {
   regenerateQrToken,
 } from '@/services/tables/table.service';
 import { sendSuccess, sendPaginated } from '@/utils/response';
+import QRCode from 'qrcode';
 
 export const listTablesController: RequestHandler = async (req, res, next) => {
   try {
@@ -115,6 +116,35 @@ export const regenerateQrTokenController: RequestHandler = async (req, res, next
     );
 
     sendSuccess(res, { table });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTableQrImageController: RequestHandler = async (req, res, next) => {
+  try {
+    const { outletId, id } = req.params as { outletId: string; id: string };
+
+    const table = await getTable(
+      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      outletId,
+      id,
+    );
+
+    // Generate QR code image from the table's QR token
+    const qrImage = await QRCode.toBuffer(table.qr_token, {
+      type: 'png',
+      width: 300,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF',
+      },
+    });
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(qrImage);
   } catch (error) {
     next(error);
   }

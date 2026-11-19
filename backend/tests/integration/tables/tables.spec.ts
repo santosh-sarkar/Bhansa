@@ -518,4 +518,84 @@ describe('Tables API', () => {
       expect(res.body.data.table.qr_token).not.toBe('qr-old2');
     });
   });
+
+  describe('GET /api/v1/outlets/:outletId/tables/:id/qr', () => {
+    it('owner can get QR code image', async () => {
+      const table = await prisma.diningTable.create({
+        data: { outlet_id: tenantA.outlet.id, label: 'QR Image Table', qr_token: 'qr-image-test' },
+      });
+
+      const res = await ownerAApi.get(`/api/v1/outlets/${tenantA.outlet.id}/tables/${table.id}/qr`);
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toBe('image/png');
+      expect(res.body).toBeInstanceOf(Buffer);
+      expect(res.body.length).toBeGreaterThan(0);
+    });
+
+    it('manager can get QR code image', async () => {
+      const table = await prisma.diningTable.create({
+        data: {
+          outlet_id: tenantA.outlet.id,
+          label: 'QR Image Table 2',
+          qr_token: 'qr-image-test-2',
+        },
+      });
+
+      const res = await managerAApi.get(
+        `/api/v1/outlets/${tenantA.outlet.id}/tables/${table.id}/qr`,
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toBe('image/png');
+    });
+
+    it('waiter can get QR code image', async () => {
+      const table = await prisma.diningTable.create({
+        data: {
+          outlet_id: tenantA.outlet.id,
+          label: 'QR Image Table 3',
+          qr_token: 'qr-image-test-3',
+        },
+      });
+
+      const res = await waiterAApi.get(
+        `/api/v1/outlets/${tenantA.outlet.id}/tables/${table.id}/qr`,
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toBe('image/png');
+    });
+
+    it('rejects cross-tenant access', async () => {
+      const table = await prisma.diningTable.create({
+        data: {
+          outlet_id: tenantA.outlet.id,
+          label: 'Cross Tenant QR',
+          qr_token: 'qr-cross-tenant',
+        },
+      });
+
+      const res = await ownerAApi.get(`/api/v1/outlets/${tenantB.outlet.id}/tables/${table.id}/qr`);
+
+      expect([403, 404]).toContain(res.status);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 404 for non-existent table', async () => {
+      const res = await ownerAApi.get(
+        `/api/v1/outlets/${tenantA.outlet.id}/tables/00000000-0000-0000-0000-000000000000/qr`,
+      );
+
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 400 for invalid UUID', async () => {
+      const res = await ownerAApi.get(`/api/v1/outlets/${tenantA.outlet.id}/tables/not-a-uuid/qr`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+  });
 });

@@ -114,7 +114,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | O-005 | Save last active outlet (`PATCH /me/active-outlet`, Owner and Manager only) | A-010 | | ✅ |
 | TB-001 | Table CRUD per outlet | A-010 | | ✅ |
 | TB-002 | QR token generation and regeneration | TB-001 | | ✅ |
-| TB-003 | QR image endpoint | TB-002 | PD-006 | ⬜ |
+| TB-003 | QR image endpoint | TB-002 | PD-006 | ✅ |
 
 ---
 
@@ -312,5 +312,6 @@ Multi-outlet is in v1, but the outlet-context middleware exists from A-010 onwar
 | 2026-11-19 | O-005 | ✅ done | Added `PATCH /api/v1/outlets/me/active-outlet` endpoint (save last active outlet). Owner can set any outlet in their organization. Manager can only set outlets they are assigned to. Updates user's `last_outlet_id`. Requires `outlet_id` in body. 8 integration tests cover owner/manager setting, cross-tenant rejection, unassigned outlet rejection, 404/400/401 errors. 343 tests pass (25 suites), 88.12% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 | 2026-11-19 | TB-001 | ✅ done | Added Table CRUD per outlet endpoints under `/api/v1/outlets/:outletId/tables`. GET (list with pagination/filtering), GET by ID, POST (create), PATCH (update), DELETE (deactivate), POST regenerate-qr. Owner/Manager with `tables.manage` can create/update/deactivate/regenerate QR. Waiter/Kitchen can list/get. QR token auto-generated on create, regenerable. All endpoints require `X-Outlet-Id` header. 34 integration tests cover CRUD, QR regen, filters, permissions, tenant isolation. 377 tests pass (26 suites), 87.51% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 | 2026-11-19 | TB-002 | ✅ done | Added `GET /api/v1/public/tables/:qrToken` public endpoint to resolve QR token to table, outlet, and effective menu. Returns table details, outlet info, and effective menu with categories and items (including outlet price overrides). Handles inactive/deleted outlets, cross-tenant access, and invalid tokens. 10 integration tests cover valid resolution, error cases (404/400/401), and menu resolution. 387 tests pass (27 suites), 87.76% coverage (80% threshold). Type-check, lint, format:check and build pass. |
+| 2026-11-19 | TB-003 | ✅ done | Added `GET /api/v1/outlets/:outletId/tables/:id/qr` endpoint to return QR code image (PNG) for a table. Uses `qrcode` library (per PD-006). Requires authentication and outlet context. Owner, Manager, and Waiter can access. 6 integration tests cover owner/manager/waiter access, cross-tenant rejection, 404 for non-existent table, 400 for invalid UUID. 393 tests pass (27 suites), 87.76% coverage (80% threshold). Type-check, lint, format:check and build pass. |
 
 The agent appends a row after each completed task.
