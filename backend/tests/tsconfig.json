@@ -24,6 +24,7 @@
     "unit/services/plans/plan.test.ts",
     "integration/plans/subscription.spec.ts",
     "integration/plans/custom-plan-request.spec.ts",
+    "integration/outlets/outlets.spec.ts",
     "unit/jobs/trialExpiry.test.ts",
     "unit/middlewares/subscriptionGuard.test.ts",
     "integration/authz/permissions.spec.ts",

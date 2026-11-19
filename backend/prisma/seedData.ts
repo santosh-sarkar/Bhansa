@@ -14,6 +14,7 @@ export const PERMISSIONS = [
   { code: 'staff.manage', description: 'Invite and manage staff' },
   { code: 'menu.edit', description: 'Edit menu, prices, categories' },
   { code: 'tables.manage', description: 'Manage tables and QR codes' },
+  { code: 'outlets.manage', description: 'Create and deactivate outlets' },
   { code: 'order.create', description: 'Place or edit orders' },
   { code: 'order.update_status', description: 'Update order status' },
   { code: 'order.cancel', description: 'Cancel orders' },

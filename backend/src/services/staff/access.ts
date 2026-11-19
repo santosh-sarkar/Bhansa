@@ -64,3 +64,26 @@ export async function getManageableOutletIds(
 
   return { organizationWide, outletIds };
 }
+
+/**
+ * Outlets where the caller has any assignment. An assignment with
+ * `outlet_id = NULL` makes the caller organization-wide (Owner).
+ * Used for listing outlets the user can access.
+ */
+export async function getAccessibleOutletIds(
+  actor: StaffActor,
+): Promise<{ organizationWide: boolean; outletIds: string[] }> {
+  const assignments = await prisma.staffAssignment.findMany({
+    where: { user_id: actor.id },
+    select: { outlet_id: true },
+  });
+
+  const organizationWide = assignments.some((assignment) => assignment.outlet_id === null);
+  const outletIds = [
+    ...new Set(
+      assignments.flatMap((assignment) => (assignment.outlet_id ? [assignment.outlet_id] : [])),
+    ),
+  ];
+
+  return { organizationWide, outletIds };
+}

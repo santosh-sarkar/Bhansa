@@ -38,6 +38,26 @@ export function sendSuccess<T>(res: Response, data: T, options: SuccessOptions =
   res.status(options.status ?? 200).json(body);
 }
 
+export function sendPaginated<T>(
+  res: Response,
+  data: T[],
+  meta: PaginationMeta,
+  options: { status?: number } = {},
+): void {
+  const body = {
+    success: true,
+    data,
+    pagination: {
+      page: meta.page,
+      limit: meta.limit,
+      total: meta.total,
+      totalPages: Math.ceil(meta.total / meta.limit),
+    },
+  };
+
+  res.status(options.status ?? 200).json(body);
+}
+
 export function sendError(
   res: Response,
   code: ErrorCode,

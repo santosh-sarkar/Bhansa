@@ -5,6 +5,7 @@ import { healthRouter } from '@/routes/health/health.routes';
 import { docsRouter } from '@/routes/docs/docs.routes';
 import { staffRouter } from '@/routes/staff/staff.routes';
 import { plansRouter } from '@/routes/plans/plans.routes';
+import { outletsRouter } from '@/routes/outlets/outlets.routes';
 
 export const apiRouter = Router();
 
@@ -13,3 +14,4 @@ apiRouter.use(docsRouter);
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/staff', staffRouter);
 apiRouter.use('/plans', plansRouter);
+apiRouter.use('/outlets', outletsRouter);
