@@ -382,3 +382,64 @@ export async function deactivateOutlet(actor: StaffActor, outletId: string): Pro
 
   return mapOutletDetail(updated);
 }
+
+/**
+ * Sets the user's last active outlet.
+ * Owner can set any outlet in their organization.
+ * Manager can only set outlets they're assigned to.
+ */
+export async function setActiveOutlet(actor: StaffActor, outletId: string): Promise<OutletDetail> {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  const { organizationWide, outletIds } = await getAccessibleOutletIds(actor);
+
+  if (!organizationWide && !outletIds.includes(outletId)) {
+    throw new AppError('FORBIDDEN', 'Outlet access denied', 403);
+  }
+
+  // Check if outlet exists in user's organization
+  const existingOutlet = await prisma.outlet.findFirst({
+    where: { id: outletId, organization_id: actor.organization_id },
+    select: { id: true },
+  });
+
+  if (!existingOutlet) {
+    const outletInOtherOrg = await prisma.outlet.findFirst({
+      where: { id: outletId },
+      select: { organization_id: true },
+    });
+
+    if (outletInOtherOrg) {
+      throw new AppError('FORBIDDEN', 'Outlet access denied', 403);
+    }
+
+    throw new AppError('NOT_FOUND', 'Outlet not found', 404);
+  }
+
+  // Update user's last_outlet_id
+  await prisma.user.update({
+    where: { id: actor.id },
+    data: { last_outlet_id: outletId },
+  });
+
+  // Return the outlet details
+  const outlet = await prisma.outlet.findUniqueOrThrow({
+    where: { id: outletId },
+    select: {
+      id: true,
+      organization_id: true,
+      name: true,
+      address: true,
+      phone: true,
+      timezone: true,
+      tax_percent: true,
+      service_charge_percent: true,
+      is_active: true,
+      created_at: true,
+    },
+  });
+
+  return mapOutletDetail(outlet);
+}

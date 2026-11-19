@@ -7,6 +7,7 @@ import {
   createOutletController,
   updateOutletController,
   deactivateOutletController,
+  setActiveOutletController,
 } from '@/controllers/outlets/outlet.controller';
 import { registry } from '@/docs/openapi';
 import { authMiddleware } from '@/middlewares/auth';
@@ -20,6 +21,7 @@ import {
   createOutletSchema,
   updateOutletSchema,
 } from '@/validations/outlets/outlet.schema';
+import { setActiveOutletSchema } from '@/validations/outlets/active-outlet.schema';
 
 const outletsRouter = Router();
 
@@ -228,6 +230,50 @@ outletsRouter.patch(
   outletContextMiddleware,
   requirePermission('outlets.manage'),
   deactivateOutletController,
+);
+
+// Set active outlet - Owner or Manager
+const activeOutletResponseSchema = z.object({
+  id: z.string().uuid(),
+  organization_id: z.string().uuid(),
+  name: z.string(),
+  address: z.string().nullable(),
+  phone: z.string().nullable(),
+  timezone: z.string(),
+  tax_percent: z.string(),
+  service_charge_percent: z.string(),
+  is_active: z.boolean(),
+  created_at: z.string().datetime(),
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/v1/outlets/me/active-outlet',
+  tags: ['Outlets'],
+  summary: 'Save last active outlet',
+  description:
+    'Saves the last active outlet for the current user. Owner can set any outlet in their organization. Manager can only set outlets they are assigned to.',
+  security: [{ cookieAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: setActiveOutletSchema.shape.body },
+      },
+    },
+  },
+  responses: {
+    200: successResponse('Active outlet saved', z.object({ outlet: activeOutletResponseSchema })),
+    400: errorResponse('Validation error'),
+    401: errorResponse('Unauthenticated'),
+    403: errorResponse('Forbidden or outlet access denied'),
+    404: errorResponse('Outlet not found'),
+  },
+});
+
+outletsRouter.patch(
+  '/me/active-outlet',
+  validate({ body: setActiveOutletSchema.shape.body }),
+  setActiveOutletController,
 );
 
 export { outletsRouter };

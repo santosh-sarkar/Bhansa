@@ -6,6 +6,7 @@ import {
   createOutlet,
   updateOutlet,
   deactivateOutlet,
+  setActiveOutlet,
 } from '@/services/outlets/outlet.service';
 import { sendSuccess, sendPaginated } from '@/utils/response';
 
@@ -102,6 +103,21 @@ export const deactivateOutletController: RequestHandler = async (req, res, next)
     const outlet = await deactivateOutlet(
       { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
       id,
+    );
+
+    sendSuccess(res, { outlet });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const setActiveOutletController: RequestHandler = async (req, res, next) => {
+  try {
+    const input = req.body as { outlet_id: string };
+
+    const outlet = await setActiveOutlet(
+      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      input.outlet_id,
     );
 
     sendSuccess(res, { outlet });

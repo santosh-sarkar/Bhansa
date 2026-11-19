@@ -454,4 +454,97 @@ describe('Outlets API', () => {
       expect(res.body.success).toBe(false);
     });
   });
+
+  describe('PATCH /api/v1/outlets/me/active-outlet', () => {
+    it('owner can set active outlet', async () => {
+      // Create a second outlet
+      const outlet2 = await prisma.outlet.create({
+        data: {
+          organization_id: tenantA.organization.id,
+          name: 'Outlet 2',
+        },
+      });
+
+      const res = await ownerAApi.patch('/api/v1/outlets/me/active-outlet', {
+        outlet_id: outlet2.id,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.outlet.id).toBe(outlet2.id);
+    });
+
+    it('owner can set active outlet back to original', async () => {
+      const res = await ownerAApi.patch('/api/v1/outlets/me/active-outlet', {
+        outlet_id: tenantA.outlet.id,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.outlet.id).toBe(tenantA.outlet.id);
+    });
+
+    it('manager can set active outlet for assigned outlet', async () => {
+      const res = await managerAApi.patch('/api/v1/outlets/me/active-outlet', {
+        outlet_id: tenantA.outlet.id,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.outlet.id).toBe(tenantA.outlet.id);
+    });
+
+    it('rejects manager setting unassigned outlet', async () => {
+      // Create a second outlet that manager is not assigned to
+      const outlet2 = await prisma.outlet.create({
+        data: {
+          organization_id: tenantA.organization.id,
+          name: 'Outlet 2',
+        },
+      });
+
+      const res = await managerAApi.patch('/api/v1/outlets/me/active-outlet', {
+        outlet_id: outlet2.id,
+      });
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('rejects cross-tenant outlet', async () => {
+      const res = await ownerAApi.patch('/api/v1/outlets/me/active-outlet', {
+        outlet_id: tenantB.outlet.id,
+      });
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('rejects non-existent outlet', async () => {
+      const res = await ownerAApi.patch('/api/v1/outlets/me/active-outlet', {
+        outlet_id: '00000000-0000-0000-0000-000000000000',
+      });
+
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('rejects invalid UUID', async () => {
+      const res = await ownerAApi.patch('/api/v1/outlets/me/active-outlet', {
+        outlet_id: 'not-a-uuid',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('rejects unauthenticated requests', async () => {
+      const res = await request(app).patch('/api/v1/outlets/me/active-outlet').send({
+        outlet_id: tenantA.outlet.id,
+      });
+
+      expect(res.status).toBe(401);
+      expect(res.body.success).toBe(false);
+    });
+  });
 });
