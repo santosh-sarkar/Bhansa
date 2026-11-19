@@ -28,6 +28,7 @@ This is the **planned** endpoint list. The agent must not add, rename or remove 
 - **Subscription details:** `GET /api/v1/plans/subscription` returns plan, status, trial/grace dates, override limits, and actual usage vs limits for outlets, staff, and menu items. Protected by `billing.manage` permission + subscription guard. Usage counts actual outlets (non-deleted), active staff with assignments, and active menu items.
 - **Trial expiry job:** Daily BullMQ job (`trial-expiry-check`) runs at 01:00 UTC. Processes: 1) Sends 3-day and 1-day reminder emails before trial ends, 2) Moves expired trials to grace (sets `grace_ends_at` = 7 days), sends notification, 3) Moves expired grace to suspended, sends notification. Uses `emailService` with templates (`trialExpiryReminder`, `trialExpired`, `trialSuspended`).
 - **Custom plan request:** `POST /api/v1/plans/subscription/custom-plan-request` creates a lead (`CustomPlanLead`) with `contact_name`, `contact_email`, optional `outlet_count` (1-100), and optional `message`. Organization ID is auto-filled from authenticated user. Protected by auth + outlet header. Validation rejects invalid emails, empty names, out-of-range outlet_count, and overlong fields.
+- **Plan limit middleware:** `planLimitMiddleware('outlet'|'staff'|'menuItem')` in `src/middlewares/planLimit.ts` checks plan limits before resource creation. Returns 403 `PLAN_LIMIT_REACHED` with current usage and limit details. Attaches `req.planLimitInfo` for controller use. Used by outlet creation, staff creation, and menu item creation endpoints.
 
 ---
 
