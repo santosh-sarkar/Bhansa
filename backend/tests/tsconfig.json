@@ -26,6 +26,7 @@
     "integration/plans/custom-plan-request.spec.ts",
     "integration/outlets/outlets.spec.ts",
     "integration/tables/tables.spec.ts",
+    "integration/public/public-table.spec.ts",
     "unit/jobs/trialExpiry.test.ts",
     "unit/middlewares/subscriptionGuard.test.ts",
     "integration/authz/permissions.spec.ts",
