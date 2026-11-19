@@ -7,6 +7,7 @@ import { staffRouter } from '@/routes/staff/staff.routes';
 import { plansRouter } from '@/routes/plans/plans.routes';
 import { outletsRouter } from '@/routes/outlets/outlets.routes';
 import { publicTableRouter } from '@/routes/public/public-table.routes';
+import { categoryRouter } from '@/routes/menu/category.routes';
 
 export const apiRouter = Router();
 
@@ -17,3 +18,4 @@ apiRouter.use('/staff', staffRouter);
 apiRouter.use('/plans', plansRouter);
 apiRouter.use('/outlets', outletsRouter);
 apiRouter.use('/public', publicTableRouter);
+apiRouter.use('/menu', categoryRouter);
