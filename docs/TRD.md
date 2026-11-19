@@ -95,6 +95,7 @@ Base path: `/api/v1`. Full endpoint list in `API.md`.
 - **Outlet listing:** `GET /api/v1/outlets` returns paginated list of outlets the user can access (Owner: all organization outlets; Manager/Waiter/Kitchen: assigned outlets only). Supports pagination, `is_active` filter, and search. `GET /api/v1/outlets/:id` returns outlet details for assigned outlets. Both require auth + `X-Outlet-Id` header.
 - **Outlet update:** `PATCH /api/v1/outlets/:id` updates outlet profile and settings (name, address, phone, timezone, tax_percent, service_charge_percent, is_active). Owner can update all fields; Manager with `tables.manage` permission can update assigned outlets. Requires `X-Outlet-Id` header.
 - **Outlet creation:** `POST /api/v1/outlets` creates a new outlet. Owner only, plan-gated by `max_outlets` limit via `planLimitMiddleware`. Returns 403 `PLAN_LIMIT_REACHED` when limit exceeded. Validation for name, address, phone, timezone, tax_percent, service_charge_percent. Requires `X-Outlet-Id` header.
+- **Outlet deactivation:** `PATCH /api/v1/outlets/:id/deactivate` sets `is_active=false` to block new orders while preserving history. Owner only; Manager/Waiter/Kitchen rejected with 403. Cross-tenant access returns 403. Requires `X-Outlet-Id` header.
 - Optional hardening: PostgreSQL Row-Level Security as a second layer (not required for v1; ask before adding).
 
 ---

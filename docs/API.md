@@ -31,6 +31,7 @@ This is the **planned** endpoint list. The agent must not add, rename or remove 
 - **Plan limit middleware:** `planLimitMiddleware('outlet'|'staff'|'menuItem')` in `src/middlewares/planLimit.ts` checks plan limits before resource creation. Returns 403 `PLAN_LIMIT_REACHED` with current usage and limit details. Attaches `req.planLimitInfo` for controller use. Used by outlet creation, staff creation, and menu item creation endpoints.
 - **Outlet update:** `PATCH /api/v1/outlets/:id` updates outlet profile and settings (name, address, phone, timezone, tax_percent, service_charge_percent, is_active). Owner can update all fields; Manager with `tables.manage` permission can update assigned outlets. Requires `X-Outlet-Id` header.
 - **Outlet creation:** `POST /api/v1/outlets` creates a new outlet. Owner only, plan-gated by `max_outlets` limit via `planLimitMiddleware`. Returns 403 `PLAN_LIMIT_REACHED` when limit exceeded. Validation for name, address, phone, timezone, tax_percent, service_charge_percent. Requires `X-Outlet-Id` header.
+- **Outlet deactivation:** `PATCH /api/v1/outlets/:id/deactivate` sets `is_active=false` to block new orders while preserving history. Owner only; Manager/Waiter/Kitchen rejected with 403. Cross-tenant access returns 403. Requires `X-Outlet-Id` header.
 
 ---
 
