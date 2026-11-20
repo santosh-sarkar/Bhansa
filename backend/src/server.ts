@@ -1,6 +1,7 @@
 import { createApp } from '@/app';
 import { env } from '@/config/env';
 import { connectRedis, disconnectRedis } from '@/lib/redis';
+import { initializeSocketServer } from '@/lib/socket';
 import { emailWorker } from '@/jobs/email.queue';
 import { trialExpiryWorker, scheduleTrialExpiryJob } from '@/jobs/trialExpiry.queue';
 import { logger } from '@/lib/logger';
@@ -24,8 +25,15 @@ async function start(): Promise<void> {
     logger.info(`API listening on http://localhost:${env.PORT}`);
   });
 
+  // Initialize Socket.IO server
+  const io = initializeSocketServer(server);
+  logger.info('Socket.IO server attached');
+
   function shutdown(): void {
     logger.info('shutting down');
+    void io.close(() => {
+      logger.info('Socket.IO server closed');
+    });
     server.close(() => {
       void (async () => {
         await emailWorker.close();

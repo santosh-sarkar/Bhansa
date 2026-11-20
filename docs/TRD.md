@@ -113,12 +113,14 @@ Base path: `/api/v1`. Full endpoint list in `API.md`.
 
 ## 6. Real-time (Socket.IO)
 
+**Status:** Server implemented (R-001). Events will be emitted by services as features are built (R-007, R-009, R-012, R-013).
+
 Rooms:
 
 | Room | Members |
 |---|---|
-| `outlet:{id}:waiters` | Waiters, Managers of that outlet |
-| `outlet:{id}:kitchen` | Kitchen staff, Managers |
+| `outlet:{id}:waiters` | Waiters, Managers, Owners of that outlet |
+| `outlet:{id}:kitchen` | Kitchen staff, Managers, Owners |
 | `outlet:{id}:managers` | Managers, Owner |
 | `session:{id}` | Guest(s) at that table session |
 
@@ -136,6 +138,14 @@ Events (server → client):
 | `session:closed` | session, waiters | Payment completed |
 
 Rules: events are emitted by services after the DB transaction commits. Clients refetch via TanStack Query when needed. Never emit data from another outlet.
+
+Implementation details (R-001):
+- Handshake: validates access token from cookie (`bansa_access`), loads user, checks `is_active` and `email_verified_at`
+- Authorization: user must belong to an organization; outlet access checked via staff assignments
+- `join:outlet` event: validates outlet exists in user's org, user has assignment (or org-wide as Owner)
+- Room assignment based on role: Owner joins all three rooms; Manager joins all three; Waiter joins waiters; Kitchen joins kitchen
+- `join:session` event: allows guests to join session room (validates session exists and not closed)
+- Helper functions for emitting to rooms: `emitToOutletWaiters`, `emitToOutletKitchen`, `emitToOutletManagers`, `emitToSession`
 
 ---
 

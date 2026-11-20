@@ -35,7 +35,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 ⬜ todo · 🟡 in progress · ⛔ blocked (waiting for user decision) · ✅ done
 
-**Current task:** `M-007` (Effective menu query for an outlet).
+**Current task:** `R-001` (Socket.IO server, handshake auth, room joining).
 
 ### Before starting a task, the agent must
 
@@ -136,7 +136,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 | ID | Task | Depends | Needs decision | Status |
 |---|---|---|---|---|
-| R-001 | Socket.IO server, handshake auth, room joining after assignment check | A-010 | | ⬜ |
+| R-001 | Socket.IO server, handshake auth, room joining after assignment check | A-010 | | ✅ |
 | R-002 | Public: resolve QR token → outlet, table, effective menu | TB-002, M-007 | | ⬜ |
 | R-003 | Public: start or join table session, guest cookie | R-002 | | ⬜ |
 | R-004 | Public: place order → `pending_confirmation`; server-side pricing; snapshots; order number | R-003 | PD-019, PD-020 | ⬜ |
@@ -320,5 +320,6 @@ Multi-outlet is in v1, but the outlet-context middleware exists from A-010 onwar
 | 2026-11-20 | M-005 | ✅ done | Added Per-outlet override endpoints: `GET /api/v1/menu/items/:id/outlet-overrides` (list with outlet info) and `PUT /api/v1/menu/items/:id/outlet-overrides` (bulk upsert). Supports price_override, is_available, auto_unavailable per outlet. Owner has org-wide access, Manager limited to assigned outlets. 16 integration tests cover CRUD, filters, permissions, tenant isolation. 16 tests pass. Type-check, lint, format:check and build pass. |
 | 2026-11-20 | M-006 | ✅ done | Added `PATCH /api/v1/menu/items/:id/availability` endpoint to toggle item availability per outlet. Uses `item.mark_unavailable` permission (Owner, Manager, Kitchen). Creates/updates `MenuItemOutletOverride.is_available`. Owner has org-wide access, Manager/Kitchen limited to assigned outlets. 13 integration tests cover permissions (owner/manager/kitchen/waiter), tenant isolation, validation, and edge cases. 29 tests pass (16 from M-005 + 13 new). Type-check, lint, format:check and build pass. |
 | 2026-11-20 | M-007 | ✅ done | Added `GET /api/v1/menu/effective` endpoint for effective menu query per outlet. Returns active categories with items including outlet price overrides and availability (respects is_available and auto_unavailable). Requires authentication and X-Outlet-Id header. Accessible by Owner (org-wide), Manager/Waiter/Kitchen (assigned outlets). 28 integration tests cover authentication, role-based access, content filtering, price overrides, availability logic, and response structure. Type-check, lint, format:check and build pass. |
+| 2026-11-20 | R-001 | ✅ done | Added Socket.IO server with handshake authentication and room joining. Handshake validates access token from cookie, loads user and checks organization membership. Rooms: `outlet:{id}:waiters` (waiters, managers, owners), `outlet:{id}:kitchen` (kitchen, managers, owners), `outlet:{id}:managers` (managers, owners), `session:{id}` (guests). `join:outlet` event validates outlet access via staff assignments. 6 integration tests cover authentication (valid/invalid/no token), authorization (join assigned/unassigned/different org outlets), and room joining. Type-check, lint, format:check and build pass. |
 
 The agent appends a row after each completed task.
