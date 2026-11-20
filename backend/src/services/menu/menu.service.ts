@@ -19,6 +19,7 @@ export interface EffectiveMenuCategory {
     is_active: boolean;
     image_url: string | null;
     override_price: string | null;
+    is_available: boolean;
   }>;
 }
 
@@ -413,8 +414,9 @@ export async function deleteCategory(
 
 /**
  * Gets the effective menu for an outlet.
- * Returns categories with their items, including outlet-specific price overrides.
- * Only returns active categories and active items.
+ * Returns categories with their items, including outlet-specific price overrides and availability.
+ * Only returns active categories and active items that are available at this outlet.
+ * Respects is_available and auto_unavailable from outlet overrides.
  */
 export async function getEffectiveMenuForOutlet(outletId: string): Promise<EffectiveMenu> {
   const dbCategories = await prisma.menuCategory.findMany({
@@ -438,6 +440,7 @@ export async function getEffectiveMenuForOutlet(outletId: string): Promise<Effec
             select: {
               price_override: true,
               is_available: true,
+              auto_unavailable: true,
             },
           },
         },
@@ -454,6 +457,11 @@ export async function getEffectiveMenuForOutlet(outletId: string): Promise<Effec
       .filter((item) => item.is_active)
       .map((item) => {
         const override = item.outletOverrides[0];
+        // Determine effective availability: override.is_available defaults to true, auto_unavailable defaults to false
+        const isAvailable = override?.is_available ?? true;
+        const autoUnavailable = override?.auto_unavailable ?? false;
+        const effectiveAvailable = isAvailable && !autoUnavailable;
+
         return {
           id: item.id,
           name: item.name,
@@ -462,8 +470,11 @@ export async function getEffectiveMenuForOutlet(outletId: string): Promise<Effec
           is_active: item.is_active,
           image_url: item.image_url,
           override_price: override?.price_override?.toString() ?? null,
+          is_available: effectiveAvailable,
         };
-      });
+      })
+      // Filter out items that are not available at this outlet
+      .filter((item) => item.is_available);
 
     if (items.length > 0) {
       categories.push({

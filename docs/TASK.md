@@ -35,7 +35,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 ⬜ todo · 🟡 in progress · ⛔ blocked (waiting for user decision) · ✅ done
 
-**Current task:** `M-006` (Manual availability toggle).
+**Current task:** `M-007` (Effective menu query for an outlet).
 
 ### Before starting a task, the agent must
 
@@ -128,7 +128,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | M-004 | Image upload to Cloudinary (type and size limits) | M-002 | | ✅ |
 | M-005 | Per-outlet override (price, availability) | M-002, A-010 | PD-018 | ✅ |
 | M-006 | Manual availability toggle (Manager, Owner, Kitchen) | M-005 | | ✅ |
-| M-007 | Effective menu query for an outlet (item + override + `auto_unavailable`) | M-005 | | ⬜ |
+| M-007 | Effective menu query for an outlet (item + override + `auto_unavailable`) | M-005 | | ✅ |
 
 ---
 
@@ -319,5 +319,6 @@ Multi-outlet is in v1, but the outlet-context middleware exists from A-010 onwar
 | 2026-11-20 | M-004 | ✅ done | Added `POST /api/v1/menu/items/upload/image` endpoint to upload menu images to Cloudinary. Uses `multer` for multipart handling with memory storage. Accepts JPEG, PNG, WebP up to 5MB. Returns secure URL and metadata. Requires `menu.edit` permission (Owner/Manager). 9 integration tests cover valid uploads, validation (type, size, missing file), permissions, tenant isolation. 9 tests pass. Type-check, lint, format:check and build pass. |
 | 2026-11-20 | M-005 | ✅ done | Added Per-outlet override endpoints: `GET /api/v1/menu/items/:id/outlet-overrides` (list with outlet info) and `PUT /api/v1/menu/items/:id/outlet-overrides` (bulk upsert). Supports price_override, is_available, auto_unavailable per outlet. Owner has org-wide access, Manager limited to assigned outlets. 16 integration tests cover CRUD, filters, permissions, tenant isolation. 16 tests pass. Type-check, lint, format:check and build pass. |
 | 2026-11-20 | M-006 | ✅ done | Added `PATCH /api/v1/menu/items/:id/availability` endpoint to toggle item availability per outlet. Uses `item.mark_unavailable` permission (Owner, Manager, Kitchen). Creates/updates `MenuItemOutletOverride.is_available`. Owner has org-wide access, Manager/Kitchen limited to assigned outlets. 13 integration tests cover permissions (owner/manager/kitchen/waiter), tenant isolation, validation, and edge cases. 29 tests pass (16 from M-005 + 13 new). Type-check, lint, format:check and build pass. |
+| 2026-11-20 | M-007 | ✅ done | Added `GET /api/v1/menu/effective` endpoint for effective menu query per outlet. Returns active categories with items including outlet price overrides and availability (respects is_available and auto_unavailable). Requires authentication and X-Outlet-Id header. Accessible by Owner (org-wide), Manager/Waiter/Kitchen (assigned outlets). 28 integration tests cover authentication, role-based access, content filtering, price overrides, availability logic, and response structure. Type-check, lint, format:check and build pass. |
 
 The agent appends a row after each completed task.
