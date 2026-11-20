@@ -30,6 +30,7 @@
     "integration/menu/category.spec.ts",
     "integration/menu/item.spec.ts",
     "integration/menu/option.spec.ts",
+    "integration/menu/upload.spec.ts",
     "unit/jobs/trialExpiry.test.ts",
     "unit/middlewares/subscriptionGuard.test.ts",
     "integration/authz/permissions.spec.ts",
