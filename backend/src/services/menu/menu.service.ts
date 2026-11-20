@@ -959,3 +959,323 @@ export async function deleteMenuItem(actor: StaffActor, itemId: string): Promise
 
   return item;
 }
+
+/**
+ * Lists menu item options for a menu item.
+ * Only returns options for items in the actor's organization.
+ */
+export async function listMenuItemOptions(
+  actor: StaffActor,
+  menuItemId: string,
+  filters: { page: number; limit: number; kind?: string; is_active?: boolean },
+) {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  // Verify menu item exists in organization
+  const menuItem = await prisma.menuItem.findFirst({
+    where: {
+      id: menuItemId,
+      organization_id: actor.organization_id,
+    },
+    select: { id: true },
+  });
+
+  if (!menuItem) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  const where: Record<string, unknown> = {
+    menu_item_id: menuItemId,
+  };
+
+  if (filters.kind) {
+    where.kind = filters.kind;
+  }
+
+  if (filters.is_active !== undefined) {
+    where.is_active = filters.is_active;
+  }
+
+  const [options, total] = await Promise.all([
+    prisma.menuItemOption.findMany({
+      where,
+      select: {
+        id: true,
+        menu_item_id: true,
+        kind: true,
+        name: true,
+        price_delta: true,
+        is_active: true,
+      },
+      orderBy: { id: 'asc' },
+      skip: (filters.page - 1) * filters.limit,
+      take: filters.limit,
+    }),
+    prisma.menuItemOption.count({ where }),
+  ]);
+
+  return {
+    options,
+    total,
+    page: filters.page,
+    limit: filters.limit,
+    totalPages: Math.ceil(total / filters.limit),
+  };
+}
+
+/**
+ * Gets a single menu item option by ID.
+ */
+export async function getMenuItemOption(actor: StaffActor, menuItemId: string, optionId: string) {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  // Verify menu item exists in organization
+  const menuItem = await prisma.menuItem.findFirst({
+    where: {
+      id: menuItemId,
+      organization_id: actor.organization_id,
+    },
+    select: { id: true },
+  });
+
+  if (!menuItem) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  const option = await prisma.menuItemOption.findFirst({
+    where: {
+      id: optionId,
+      menu_item_id: menuItemId,
+    },
+    select: {
+      id: true,
+      menu_item_id: true,
+      kind: true,
+      name: true,
+      price_delta: true,
+      is_active: true,
+    },
+  });
+
+  if (!option) {
+    throw new AppError('NOT_FOUND', 'Option not found', 404);
+  }
+
+  return option;
+}
+
+/**
+ * Creates a new menu item option (variant or addon).
+ * Requires menu.edit permission.
+ */
+export async function createMenuItemOption(
+  actor: StaffActor,
+  menuItemId: string,
+  input: { kind: 'variant' | 'addon'; name: string; price_delta?: number },
+) {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  const { organizationWide, outletIds } = await getManageableOutletIds(actor);
+
+  if (!organizationWide && outletIds.length === 0) {
+    throw new AppError('FORBIDDEN', 'No outlet access to manage menu items', 403);
+  }
+
+  // Verify menu item exists in organization
+  const menuItem = await prisma.menuItem.findFirst({
+    where: {
+      id: menuItemId,
+      organization_id: actor.organization_id,
+    },
+    select: { id: true },
+  });
+
+  if (!menuItem) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  // Check if option with same name exists for this menu item
+  const existing = await prisma.menuItemOption.findFirst({
+    where: {
+      menu_item_id: menuItemId,
+      name: input.name,
+    },
+  });
+
+  if (existing) {
+    throw new AppError('CONFLICT', 'Option with this name already exists for this menu item', 409);
+  }
+
+  const option = await prisma.menuItemOption.create({
+    data: {
+      menu_item_id: menuItemId,
+      kind: input.kind,
+      name: input.name,
+      price_delta: input.price_delta ?? 0,
+      is_active: true,
+    },
+    select: {
+      id: true,
+      menu_item_id: true,
+      kind: true,
+      name: true,
+      price_delta: true,
+      is_active: true,
+    },
+  });
+
+  return option;
+}
+
+/**
+ * Updates a menu item option.
+ */
+export async function updateMenuItemOption(
+  actor: StaffActor,
+  menuItemId: string,
+  optionId: string,
+  input: { kind?: 'variant' | 'addon'; name?: string; price_delta?: number; is_active?: boolean },
+) {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  const { organizationWide, outletIds } = await getManageableOutletIds(actor);
+
+  if (!organizationWide && outletIds.length === 0) {
+    throw new AppError('FORBIDDEN', 'No outlet access to manage menu items', 403);
+  }
+
+  // Verify menu item exists in organization
+  const menuItem = await prisma.menuItem.findFirst({
+    where: {
+      id: menuItemId,
+      organization_id: actor.organization_id,
+    },
+    select: { id: true },
+  });
+
+  if (!menuItem) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  // Check if option exists
+  const existing = await prisma.menuItemOption.findFirst({
+    where: {
+      id: optionId,
+      menu_item_id: menuItemId,
+    },
+  });
+
+  if (!existing) {
+    throw new AppError('NOT_FOUND', 'Option not found', 404);
+  }
+
+  // Check name uniqueness if changing
+  if (input.name !== undefined && input.name !== existing.name) {
+    const duplicate = await prisma.menuItemOption.findFirst({
+      where: {
+        menu_item_id: menuItemId,
+        name: input.name,
+        id: { not: optionId },
+      },
+    });
+
+    if (duplicate) {
+      throw new AppError(
+        'CONFLICT',
+        'Option with this name already exists for this menu item',
+        409,
+      );
+    }
+  }
+
+  const data: Record<string, unknown> = {};
+
+  if (input.kind !== undefined) data.kind = input.kind;
+  if (input.name !== undefined) data.name = input.name;
+  if (input.price_delta !== undefined) data.price_delta = input.price_delta;
+  if (input.is_active !== undefined) data.is_active = input.is_active;
+
+  const option = await prisma.menuItemOption.update({
+    where: { id: optionId },
+    data,
+    select: {
+      id: true,
+      menu_item_id: true,
+      kind: true,
+      name: true,
+      price_delta: true,
+      is_active: true,
+    },
+  });
+
+  return option;
+}
+
+/**
+ * Deletes (soft delete) a menu item option.
+ * Sets is_active=false.
+ */
+export async function deleteMenuItemOption(
+  actor: StaffActor,
+  menuItemId: string,
+  optionId: string,
+) {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  const { organizationWide, outletIds } = await getManageableOutletIds(actor);
+
+  if (!organizationWide && outletIds.length === 0) {
+    throw new AppError('FORBIDDEN', 'No outlet access to manage menu items', 403);
+  }
+
+  // Verify menu item exists in organization
+  const menuItem = await prisma.menuItem.findFirst({
+    where: {
+      id: menuItemId,
+      organization_id: actor.organization_id,
+    },
+    select: { id: true },
+  });
+
+  if (!menuItem) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  // Check if option exists
+  const existing = await prisma.menuItemOption.findFirst({
+    where: {
+      id: optionId,
+      menu_item_id: menuItemId,
+    },
+  });
+
+  if (!existing) {
+    throw new AppError('NOT_FOUND', 'Option not found', 404);
+  }
+
+  // Soft delete by setting is_active=false
+  const option = await prisma.menuItemOption.update({
+    where: { id: optionId },
+    data: { is_active: false },
+    select: {
+      id: true,
+      menu_item_id: true,
+      kind: true,
+      name: true,
+      price_delta: true,
+      is_active: true,
+    },
+  });
+
+  return option;
+}
