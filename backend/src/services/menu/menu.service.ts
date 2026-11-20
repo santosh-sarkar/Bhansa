@@ -1279,3 +1279,180 @@ export async function deleteMenuItemOption(
 
   return option;
 }
+
+/**
+ * Gets all outlet overrides for a menu item.
+ * Returns overrides only for outlets the actor has access to.
+ */
+export async function getMenuItemOutletOverrides(actor: StaffActor, itemId: string) {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  // Verify menu item exists in organization
+  const menuItem = await prisma.menuItem.findFirst({
+    where: {
+      id: itemId,
+      organization_id: actor.organization_id,
+    },
+    select: { id: true },
+  });
+
+  if (!menuItem) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  // Get manageable outlet IDs
+  const { organizationWide, outletIds } = await getManageableOutletIds(actor);
+
+  const where: Record<string, unknown> = {
+    menu_item_id: itemId,
+  };
+
+  if (!organizationWide && outletIds.length > 0) {
+    where.outlet_id = { in: outletIds };
+  }
+
+  const overrides = await prisma.menuItemOutletOverride.findMany({
+    where,
+    select: {
+      menu_item_id: true,
+      outlet_id: true,
+      price_override: true,
+      is_available: true,
+      auto_unavailable: true,
+      outlet: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      outlet: {
+        name: 'asc',
+      },
+    },
+  });
+
+  // Format price_override as string with 2 decimal places
+  return overrides.map((override) => ({
+    ...override,
+    price_override: override.price_override ? override.price_override.toFixed(2) : null,
+  }));
+}
+
+/**
+ * Updates outlet overrides for a menu item (bulk upsert).
+ * Owner can update overrides for any outlet in organization.
+ * Manager can only update overrides for assigned outlets.
+ */
+export async function updateMenuItemOutletOverrides(
+  actor: StaffActor,
+  itemId: string,
+  overrides: Array<{
+    outlet_id: string;
+    price_override?: number | null;
+    is_available?: boolean;
+    auto_unavailable?: boolean;
+  }>,
+) {
+  if (!actor.organization_id) {
+    throw new AppError('FORBIDDEN', 'User must belong to an organization', 403);
+  }
+
+  // Verify menu item exists in organization
+  const menuItem = await prisma.menuItem.findFirst({
+    where: {
+      id: itemId,
+      organization_id: actor.organization_id,
+    },
+    select: { id: true },
+  });
+
+  if (!menuItem) {
+    throw new AppError('NOT_FOUND', 'Menu item not found', 404);
+  }
+
+  // Get manageable outlet IDs
+  const { organizationWide, outletIds } = await getManageableOutletIds(actor);
+
+  // Validate all outlet IDs are accessible
+  for (const override of overrides) {
+    if (!organizationWide && !outletIds.includes(override.outlet_id)) {
+      throw new AppError('FORBIDDEN', `No access to outlet ${override.outlet_id}`, 403);
+    }
+
+    // Verify outlet exists in organization
+    const outlet = await prisma.outlet.findFirst({
+      where: {
+        id: override.outlet_id,
+        organization_id: actor.organization_id,
+        deleted_at: null,
+      },
+      select: { id: true },
+    });
+
+    if (!outlet) {
+      throw new AppError('NOT_FOUND', `Outlet ${override.outlet_id} not found`, 404);
+    }
+  }
+
+  // Perform bulk upsert
+  await prisma.$transaction(
+    overrides.map((override) =>
+      prisma.menuItemOutletOverride.upsert({
+        where: {
+          menu_item_id_outlet_id: {
+            menu_item_id: itemId,
+            outlet_id: override.outlet_id,
+          },
+        },
+        update: {
+          price_override: override.price_override ?? null,
+          is_available: override.is_available ?? true,
+          auto_unavailable: override.auto_unavailable ?? false,
+        },
+        create: {
+          menu_item_id: itemId,
+          outlet_id: override.outlet_id,
+          price_override: override.price_override ?? null,
+          is_available: override.is_available ?? true,
+          auto_unavailable: override.auto_unavailable ?? false,
+        },
+      }),
+    ),
+  );
+
+  // Return updated overrides with outlet info
+  const updatedOverrides = await prisma.menuItemOutletOverride.findMany({
+    where: {
+      menu_item_id: itemId,
+      outlet_id: { in: overrides.map((o) => o.outlet_id) },
+    },
+    select: {
+      menu_item_id: true,
+      outlet_id: true,
+      price_override: true,
+      is_available: true,
+      auto_unavailable: true,
+      outlet: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      outlet: {
+        name: 'asc',
+      },
+    },
+  });
+
+  // Format price_override as string with 2 decimal places
+  return updatedOverrides.map((override) => ({
+    ...override,
+    price_override: override.price_override ? override.price_override.toFixed(2) : null,
+  }));
+}
