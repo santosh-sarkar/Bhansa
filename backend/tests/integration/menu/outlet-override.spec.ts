@@ -25,6 +25,8 @@ describe('Menu Item Outlet Overrides', () => {
   let managerAApi: TenantApi;
   let waiterASession: TenantSession;
   let waiterAApi: TenantApi;
+  let kitchenASession: TenantSession;
+  let kitchenAApi: TenantApi;
   let categoryId: string;
   let itemId: string;
   let outlet2Id: string;
@@ -43,10 +45,12 @@ describe('Menu Item Outlet Overrides', () => {
     ownerASession = await createSession(tenantA.users.owner, tenantA.outlet.id);
     managerASession = await createSession(tenantA.users.manager, tenantA.outlet.id);
     waiterASession = await createSession(tenantA.users.waiter, tenantA.outlet.id);
+    kitchenASession = await createSession(tenantA.users.kitchen, tenantA.outlet.id);
 
     ownerAApi = tenantApi(app, ownerASession);
     managerAApi = tenantApi(app, managerASession);
     waiterAApi = tenantApi(app, waiterASession);
+    kitchenAApi = tenantApi(app, kitchenASession);
 
     // Create a category and item for testing
     const category = await prisma.menuCategory.create({
@@ -325,6 +329,186 @@ describe('Menu Item Outlet Overrides', () => {
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
+    });
+  });
+
+  describe('PATCH /api/v1/menu/items/:id/availability', () => {
+    beforeAll(async () => {
+      // Create an outlet override with is_available = true for testing (upsert to handle existing)
+      await prisma.menuItemOutletOverride.upsert({
+        where: {
+          menu_item_id_outlet_id: {
+            menu_item_id: itemId,
+            outlet_id: tenantA.outlet.id,
+          },
+        },
+        update: {
+          is_available: true,
+          price_override: '150.00',
+          auto_unavailable: false,
+        },
+        create: {
+          menu_item_id: itemId,
+          outlet_id: tenantA.outlet.id,
+          price_override: '150.00',
+          is_available: true,
+          auto_unavailable: false,
+        },
+      });
+    });
+
+    it('owner can toggle availability to false', async () => {
+      const res = await ownerAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: tenantA.outlet.id,
+        is_available: false,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.outlet_id).toBe(tenantA.outlet.id);
+      expect(res.body.data.is_available).toBe(false);
+      expect(res.body.data.outlet).toBeDefined();
+    });
+
+    it('owner can toggle availability back to true', async () => {
+      const res = await ownerAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: tenantA.outlet.id,
+        is_available: true,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.is_available).toBe(true);
+    });
+
+    it('manager can toggle availability for assigned outlet', async () => {
+      const res = await managerAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: tenantA.outlet.id,
+        is_available: false,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.is_available).toBe(false);
+    });
+
+    it('kitchen can toggle availability for assigned outlet', async () => {
+      const res = await kitchenAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: tenantA.outlet.id,
+        is_available: false,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.is_available).toBe(false);
+    });
+
+    it('rejects waiter without item.mark_unavailable permission', async () => {
+      const res = await waiterAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: tenantA.outlet.id,
+        is_available: false,
+      });
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 404 for non-existent menu item', async () => {
+      const res = await ownerAApi.patch(
+        '/api/v1/menu/items/00000000-0000-0000-0000-000000000000/availability',
+        {
+          outlet_id: tenantA.outlet.id,
+          is_available: false,
+        },
+      );
+
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 404 for non-existent outlet', async () => {
+      const res = await ownerAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: '00000000-0000-0000-0000-000000000000',
+        is_available: false,
+      });
+
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('rejects manager toggling for unassigned outlet', async () => {
+      const res = await managerAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: outlet2Id,
+        is_available: false,
+      });
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('rejects kitchen toggling for unassigned outlet', async () => {
+      const res = await kitchenAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: outlet2Id,
+        is_available: false,
+      });
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('rejects invalid outlet_id format', async () => {
+      const res = await ownerAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: 'invalid-uuid',
+        is_available: false,
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('rejects missing is_available in body', async () => {
+      const res = await ownerAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: tenantA.outlet.id,
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('owner can toggle availability for second outlet in same org', async () => {
+      const res = await ownerAApi.patch(`/api/v1/menu/items/${itemId}/availability`, {
+        outlet_id: outlet2Id,
+        is_available: false,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.outlet_id).toBe(outlet2Id);
+      expect(res.body.data.is_available).toBe(false);
+    });
+
+    it('creates new override if none exists', async () => {
+      // Use a fresh item with no existing overrides
+      const freshItem = await prisma.menuItem.create({
+        data: {
+          organization_id: tenantA.organization.id,
+          category_id: categoryId,
+          name: 'Fresh Item',
+          base_price: '100.00',
+          is_active: true,
+        },
+      });
+
+      const res = await ownerAApi.patch(`/api/v1/menu/items/${freshItem.id}/availability`, {
+        outlet_id: tenantA.outlet.id,
+        is_available: false,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.is_available).toBe(false);
+      expect(res.body.data.price_override).toBeNull();
+      expect(res.body.data.auto_unavailable).toBe(false);
     });
   });
 });

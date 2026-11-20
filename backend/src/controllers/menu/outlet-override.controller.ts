@@ -2,6 +2,7 @@ import type { RequestHandler } from 'express';
 
 import {
   getMenuItemOutletOverrides,
+  toggleMenuItemAvailability,
   updateMenuItemOutletOverrides,
 } from '@/services/menu/menu.service';
 import { sendSuccess } from '@/utils/response';
@@ -40,6 +41,27 @@ export const updateMenuItemOutletOverridesController: RequestHandler = async (re
     );
 
     sendSuccess(res, overrides_result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const toggleMenuItemAvailabilityController: RequestHandler = async (req, res, next) => {
+  try {
+    const { id } = req.params as { id: string };
+    const { outlet_id, is_available } = req.body as {
+      outlet_id: string;
+      is_available: boolean;
+    };
+
+    const override = await toggleMenuItemAvailability(
+      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      id,
+      outlet_id,
+      is_available,
+    );
+
+    sendSuccess(res, override);
   } catch (error) {
     next(error);
   }
