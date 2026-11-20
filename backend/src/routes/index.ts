@@ -6,6 +6,7 @@ import { docsRouter } from '@/routes/docs/docs.routes';
 import { staffRouter } from '@/routes/staff/staff.routes';
 import { plansRouter } from '@/routes/plans/plans.routes';
 import { outletsRouter } from '@/routes/outlets/outlets.routes';
+import { publicSessionRouter } from '@/routes/public/public-session.routes';
 import { publicTableRouter } from '@/routes/public/public-table.routes';
 import { menuRouter } from '@/routes/menu/menu.routes';
 
@@ -18,4 +19,5 @@ apiRouter.use('/staff', staffRouter);
 apiRouter.use('/plans', plansRouter);
 apiRouter.use('/outlets', outletsRouter);
 apiRouter.use('/public', publicTableRouter);
+apiRouter.use('/public', publicSessionRouter);
 apiRouter.use('/menu', menuRouter);

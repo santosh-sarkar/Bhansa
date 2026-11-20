@@ -147,6 +147,12 @@ Implementation details (R-001):
 - `join:session` event: allows guests to join session room (validates session exists and not closed)
 - Helper functions for emitting to rooms: `emitToOutletWaiters`, `emitToOutletKitchen`, `emitToOutletManagers`, `emitToSession`
 
+**Public Session Management (R-003):**
+- `POST /api/v1/public/sessions`: Creates a new table session or joins an existing open session for the table identified by QR token. Sets `guest_token` cookie (httpOnly, secure, 30-day expiry, path `/api/v1/public`). If an open session already exists for the table, joins that session instead of creating a new one.
+- `GET /api/v1/public/sessions/current`: Returns current session details (session, table, outlet with tax/service charge), and all orders with items for the session identified by the `guest_token` cookie. Requires valid `guest_token` cookie.
+- Session model: `TableSession` with `guest_token` (hashed), `status` (open/bill_requested/closed), linked to `table` and `outlet`.
+- Guest identity: random `guest_token` stored in cookie, linked to a table session. Guests have no account.
+
 ---
 
 ## 7. Background jobs (BullMQ)

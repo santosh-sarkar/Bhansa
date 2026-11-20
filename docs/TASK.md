@@ -35,7 +35,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 ⬜ todo · 🟡 in progress · ⛔ blocked (waiting for user decision) · ✅ done
 
-**Current task:** `R-002` (Public: resolve QR token → outlet, table, effective menu).
+**Current task:** `R-003` (Public: start or join table session, guest cookie).
 
 ### Before starting a task, the agent must
 
@@ -138,7 +138,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 |---|---|---|---|---|
 | R-001 | Socket.IO server, handshake auth, room joining after assignment check | A-010 | | ✅ |
 | R-002 | Public: resolve QR token → outlet, table, effective menu | TB-002, M-007 | | ✅ |
-| R-003 | Public: start or join table session, guest cookie | R-002 | | ⬜ |
+| R-003 | Public: start or join table session, guest cookie | R-002 | | ✅ |
 | R-004 | Public: place order → `pending_confirmation`; server-side pricing; snapshots; order number | R-003 | PD-019, PD-020 | ⬜ |
 | R-005 | Public: rate limits per IP, QR token and session; cart size limits | R-004, T-012 | | ⬜ |
 | R-006 | Order transitions module (allowed transitions in one place) | R-004 | | ⬜ |
@@ -322,5 +322,6 @@ Multi-outlet is in v1, but the outlet-context middleware exists from A-010 onwar
 | 2026-11-20 | M-007 | ✅ done | Added `GET /api/v1/menu/effective` endpoint for effective menu query per outlet. Returns active categories with items including outlet price overrides and availability (respects is_available and auto_unavailable). Requires authentication and X-Outlet-Id header. Accessible by Owner (org-wide), Manager/Waiter/Kitchen (assigned outlets). 28 integration tests cover authentication, role-based access, content filtering, price overrides, availability logic, and response structure. Type-check, lint, format:check and build pass. |
 | 2026-11-20 | R-001 | ✅ done | Added Socket.IO server with handshake authentication and room joining. Handshake validates access token from cookie, loads user and checks organization membership. Rooms: `outlet:{id}:waiters` (waiters, managers, owners), `outlet:{id}:kitchen` (kitchen, managers, owners), `outlet:{id}:managers` (managers, owners), `session:{id}` (guests). `join:outlet` event validates outlet access via staff assignments. 6 integration tests cover authentication (valid/invalid/no token), authorization (join assigned/unassigned/different org outlets), and room joining. Type-check, lint, format:check and build pass. |
 | 2026-11-20 | R-002 | ✅ done | Public QR token resolution endpoint (`GET /api/v1/public/tables/:qrToken`) already implemented in TB-002. Returns table details, outlet info, and effective menu with categories/items including outlet price overrides and availability (respects is_available and auto_unavailable from M-007). No authentication required. Handles invalid/inactive/deleted tokens and cross-tenant access. 10 integration tests cover valid resolution, invalid tokens, inactive tables, deleted/inactive outlets, and effective menu content. Type-check, lint, format:check and build pass. |
+| 2026-11-20 | R-003 | ✅ done | Added public session endpoints: `POST /api/v1/public/sessions` (start/join table session, sets guest_token cookie) and `GET /api/v1/public/sessions/current` (get session details with orders, requires guest_token cookie). Creates new session or joins existing open session for the table. Guest token cookie (30-day expiry) set on session creation. 11 integration tests cover session creation, joining existing sessions, invalid/inactive/deleted QR tokens, current session retrieval with/without cookie, and orders inclusion. Type-check, lint, format:check and build pass. |
 
 The agent appends a row after each completed task.
