@@ -153,6 +153,14 @@ Implementation details (R-001):
 - Session model: `TableSession` with `guest_token` (hashed), `status` (open/bill_requested/closed), linked to `table` and `outlet`.
 - Guest identity: random `guest_token` stored in cookie, linked to a table session. Guests have no account.
 
+**Public Order Placement (R-004):**
+- `POST /api/v1/public/orders`: Places a guest order from the current session. Validates items against effective menu (respects availability and price overrides). Calculates pricing server-side: subtotal, tax (outlet tax_percent), service charge (outlet service_charge_percent), total. Creates order with `pending_confirmation` status. Uses client-provided idempotency key (PD-019) to prevent duplicates. Assigns per-outlet-per-day order number (PD-020). Sets table status to `occupied`. Returns order with items including options and pricing.
+- `GET /api/v1/public/orders/:id`: Returns order details for the current guest session. Requires valid `guest_token` cookie. Returns order with items including options and pricing.
+- Order model: `Order` with `idempotency_key`, `order_number` (per outlet per day), `status` (pending_confirmation/placed/preparing/ready/served/completed/cancelled), linked to `session`, `table`, `outlet`.
+- Order items include menu item snapshots (name, unit_price, line_total), quantity, options, and status.
+- Idempotency: client sends `Idempotency-Key` header; duplicate keys return 409 CONFLICT.
+- Order numbering: per outlet per business day, starting from 1.
+
 ---
 
 ## 7. Background jobs (BullMQ)
