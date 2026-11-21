@@ -20,7 +20,7 @@ export const listMenuItemOptionsController: RequestHandler = async (req, res, ne
     };
 
     const result = await listMenuItemOptions(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       menuItemId,
       filters,
     );
@@ -40,7 +40,7 @@ export const getMenuItemOptionController: RequestHandler = async (req, res, next
     const { menuItemId, id } = req.params as { menuItemId: string; id: string };
 
     const option = await getMenuItemOption(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       menuItemId,
       id,
     );
@@ -57,7 +57,7 @@ export const createMenuItemOptionController: RequestHandler = async (req, res, n
     const input = req.body as { kind: 'variant' | 'addon'; name: string; price_delta?: number };
 
     const option = await createMenuItemOption(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       menuItemId,
       input,
     );
@@ -79,7 +79,7 @@ export const updateMenuItemOptionController: RequestHandler = async (req, res, n
     };
 
     const option = await updateMenuItemOption(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       menuItemId,
       id,
       input,
@@ -96,7 +96,7 @@ export const deleteMenuItemOptionController: RequestHandler = async (req, res, n
     const { menuItemId, id } = req.params as { menuItemId: string; id: string };
 
     const option = await deleteMenuItemOption(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       menuItemId,
       id,
     );

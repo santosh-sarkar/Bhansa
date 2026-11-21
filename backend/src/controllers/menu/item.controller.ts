@@ -21,7 +21,7 @@ export const listMenuItemsController: RequestHandler = async (req, res, next) =>
     };
 
     const result = await listMenuItems(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       filters,
     );
 
@@ -40,7 +40,7 @@ export const getMenuItemController: RequestHandler = async (req, res, next) => {
     const { id } = req.params as { id: string };
 
     const item = await getMenuItem(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
     );
 
@@ -64,7 +64,7 @@ export const createMenuItemController: RequestHandler = async (req, res, next) =
     };
 
     const item = await createMenuItem(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       input,
     );
 
@@ -90,7 +90,7 @@ export const updateMenuItemController: RequestHandler = async (req, res, next) =
     };
 
     const item = await updateMenuItem(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
       input,
     );
@@ -106,7 +106,7 @@ export const deleteMenuItemController: RequestHandler = async (req, res, next) =
     const { id } = req.params as { id: string };
 
     const item = await deleteMenuItem(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
     );
 

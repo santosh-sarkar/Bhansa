@@ -35,7 +35,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 ⬜ todo · 🟡 in progress · ⛔ blocked (waiting for user decision) · ✅ done
 
-**Current task:** `R-005` (Public: rate limits per IP, QR token and session; cart size limits).
+**Current task:** `R-006` (Order transitions module) — implementation in progress.
 
 ### Before starting a task, the agent must
 

@@ -12,7 +12,7 @@ export const getMenuItemOutletOverridesController: RequestHandler = async (req, 
     const { id } = req.params as { id: string };
 
     const overrides = await getMenuItemOutletOverrides(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
     );
 
@@ -35,7 +35,7 @@ export const updateMenuItemOutletOverridesController: RequestHandler = async (re
     };
 
     const overrides_result = await updateMenuItemOutletOverrides(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
       overrides,
     );
@@ -55,7 +55,7 @@ export const toggleMenuItemAvailabilityController: RequestHandler = async (req, 
     };
 
     const override = await toggleMenuItemAvailability(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
       outlet_id,
       is_available,

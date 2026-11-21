@@ -19,7 +19,7 @@ export const listCategoriesController: RequestHandler = async (req, res, next) =
     };
 
     const result = await listCategories(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       filters,
     );
 
@@ -38,7 +38,7 @@ export const getCategoryController: RequestHandler = async (req, res, next) => {
     const { id } = req.params as { id: string };
 
     const category = await getCategory(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
     );
 
@@ -53,7 +53,7 @@ export const createCategoryController: RequestHandler = async (req, res, next) =
     const input = req.body as { name: string; sort_order?: number };
 
     const category = await createCategory(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       input,
     );
 
@@ -69,7 +69,7 @@ export const updateCategoryController: RequestHandler = async (req, res, next) =
     const input = req.body as { name?: string; sort_order?: number; is_active?: boolean };
 
     const category = await updateCategory(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
       input,
     );
@@ -85,7 +85,7 @@ export const deleteCategoryController: RequestHandler = async (req, res, next) =
     const { id } = req.params as { id: string };
 
     const category = await deleteCategory(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
     );
 

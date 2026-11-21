@@ -41,12 +41,16 @@ const toTestUser = (user: {
   email: string;
   full_name: string;
   organization_id: string | null;
+  role?: string;
+  outletId?: string | null;
 }): TestUser => ({
   id: user.id,
   email: user.email,
   full_name: user.full_name,
   organization_id: user.organization_id,
   is_super_admin: false,
+  role: user.role ?? 'staff',
+  outletId: user.outletId ?? null,
 });
 
 const getOutlet = (user: TestUser | undefined, outletId?: string) => {

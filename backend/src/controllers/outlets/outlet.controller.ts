@@ -20,7 +20,7 @@ export const listOutletsController: RequestHandler = async (req, res, next) => {
     };
 
     const result = await listOutlets(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       filters,
     );
 
@@ -39,7 +39,7 @@ export const getOutletController: RequestHandler = async (req, res, next) => {
     const { id } = req.params as { id: string };
 
     const outlet = await getOutlet(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
     );
 
@@ -61,7 +61,7 @@ export const createOutletController: RequestHandler = async (req, res, next) => 
     };
 
     const outlet = await createOutlet(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       input,
     );
 
@@ -85,7 +85,7 @@ export const updateOutletController: RequestHandler = async (req, res, next) => 
     };
 
     const outlet = await updateOutlet(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
       input,
     );
@@ -101,7 +101,7 @@ export const deactivateOutletController: RequestHandler = async (req, res, next)
     const { id } = req.params as { id: string };
 
     const outlet = await deactivateOutlet(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       id,
     );
 
@@ -116,7 +116,7 @@ export const setActiveOutletController: RequestHandler = async (req, res, next) 
     const input = req.body as { outlet_id: string };
 
     const outlet = await setActiveOutlet(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       input.outlet_id,
     );
 

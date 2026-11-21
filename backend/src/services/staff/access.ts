@@ -12,15 +12,18 @@ export const ROLE_RANK: Record<string, number> = {
 export interface StaffActor {
   id: string;
   organization_id: string | null;
+  role: string;
+  outletId: string | null;
 }
 
 /**
  * Resolves the caller's role at the current outlet. Owner-style assignments
  * (`outlet_id = NULL`) apply to every outlet in the organization.
  */
-export async function getActorRoleCode(actorId: string, outletId: string): Promise<string> {
+export async function getActorRoleCode(actorId: string, outletId: string | null | undefined): Promise<string> {
+  const outletIdStr = outletId ?? undefined;
   const directAssignment = await prisma.staffAssignment.findFirst({
-    where: { user_id: actorId, outlet_id: outletId },
+    where: { user_id: actorId, outlet_id: outletIdStr },
     select: { role: { select: { code: true } } },
   });
 
@@ -45,7 +48,7 @@ export async function getActorRoleCode(actorId: string, outletId: string): Promi
  * `outlet_id = NULL` makes the caller organization-wide (Owner).
  */
 export async function getManageableOutletIds(
-  actor: StaffActor,
+  actor: { id: string; organization_id: string | null },
 ): Promise<{ organizationWide: boolean; outletIds: string[] }> {
   const assignments = await prisma.staffAssignment.findMany({
     where: {

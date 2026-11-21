@@ -22,6 +22,8 @@ declare global {
         full_name: string;
         organization_id: string | null;
         is_super_admin: boolean;
+        role: string;
+        outletId: string | null;
       };
       accessToken?: string;
       outlet?: {

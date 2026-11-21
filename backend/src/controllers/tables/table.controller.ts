@@ -23,7 +23,7 @@ export const listTablesController: RequestHandler = async (req, res, next) => {
     };
 
     const result = await listTables(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       outletId,
       filters,
     );
@@ -43,7 +43,7 @@ export const getTableController: RequestHandler = async (req, res, next) => {
     const { outletId, id } = req.params as { outletId: string; id: string };
 
     const table = await getTable(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       outletId,
       id,
     );
@@ -60,7 +60,7 @@ export const createTableController: RequestHandler = async (req, res, next) => {
     const input = req.body as { label: string; seats?: number };
 
     const table = await createTable(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       outletId,
       input,
     );
@@ -77,7 +77,7 @@ export const updateTableController: RequestHandler = async (req, res, next) => {
     const input = req.body as { label?: string; seats?: number | null; is_active?: boolean };
 
     const table = await updateTable(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       outletId,
       id,
       input,
@@ -94,7 +94,7 @@ export const deactivateTableController: RequestHandler = async (req, res, next) 
     const { outletId, id } = req.params as { outletId: string; id: string };
 
     const table = await deactivateTable(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       outletId,
       id,
     );
@@ -110,7 +110,7 @@ export const regenerateQrTokenController: RequestHandler = async (req, res, next
     const { outletId, id } = req.params as { outletId: string; id: string };
 
     const table = await regenerateQrToken(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       outletId,
       id,
     );
@@ -126,7 +126,7 @@ export const getTableQrImageController: RequestHandler = async (req, res, next) 
     const { outletId, id } = req.params as { outletId: string; id: string };
 
     const table = await getTable(
-      { id: req.user!.id, organization_id: req.user!.organization_id ?? null },
+      req.user!,
       outletId,
       id,
     );

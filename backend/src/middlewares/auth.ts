@@ -31,6 +31,44 @@ const loadActiveUser = (userId: string) =>
     },
   });
 
+const loadUserWithRole = async (userId: string, outletId?: string | null) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      full_name: true,
+      organization_id: true,
+      is_super_admin: true,
+      is_active: true,
+      email_verified_at: true,
+      staffAssignments: {
+        where: outletId ? { outlet_id: outletId } : { outlet_id: null },
+        select: {
+          role: { select: { code: true } },
+          outlet_id: true,
+        },
+        take: 1,
+      },
+    },
+  });
+
+  if (!user || !user.is_active || !user.email_verified_at) {
+    return null;
+  }
+
+  const assignment = user.staffAssignments[0];
+  return {
+    id: user.id,
+    email: user.email,
+    full_name: user.full_name,
+    organization_id: user.organization_id,
+    is_super_admin: user.is_super_admin,
+    role: assignment?.role?.code ?? 'staff',
+    outletId: assignment?.outlet_id ?? null,
+  };
+};
+
 export const authMiddleware: RequestHandler = async (req, res, next) => {
   const accessToken = readCookie(req, ACCESS_COOKIE_NAME);
 
@@ -41,20 +79,15 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
 
   try {
     const userId = await verifyAccessToken(accessToken);
-    const user = await loadActiveUser(userId);
+    const outletId = req.get('X-Outlet-Id') ?? undefined;
+    const user = await loadUserWithRole(userId, outletId);
 
-    if (!user || !user.is_active || !user.email_verified_at) {
+    if (!user) {
       next(new AppError('UNAUTHENTICATED', 'Authentication required', 401));
       return;
     }
 
-    req.user = {
-      id: user.id,
-      email: user.email,
-      full_name: user.full_name,
-      organization_id: user.organization_id,
-      is_super_admin: user.is_super_admin,
-    };
+    req.user = user;
     req.accessToken = accessToken;
 
     next();
@@ -83,16 +116,11 @@ export const optionalAuthMiddleware: RequestHandler = async (req, res, next) => 
 
   try {
     const userId = await verifyAccessToken(accessToken);
-    const user = await loadActiveUser(userId);
+    const outletId = req.get('X-Outlet-Id') ?? undefined;
+    const user = await loadUserWithRole(userId, outletId);
 
-    if (user && user.is_active && user.email_verified_at) {
-      req.user = {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        organization_id: user.organization_id,
-        is_super_admin: user.is_super_admin,
-      };
+    if (user) {
+      req.user = user;
       req.accessToken = accessToken;
     }
   } catch {
