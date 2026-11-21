@@ -161,6 +161,18 @@ Implementation details (R-001):
 - Idempotency: client sends `Idempotency-Key` header; duplicate keys return 409 CONFLICT.
 - Order numbering: per outlet per business day, starting from 1.
 
+**Public Rate Limiting & Cart Limits (R-005):**
+- Rate limiting via Redis using `createRateLimiter` middleware (T-012):
+  - `POST /public/sessions`: 10 req/min per IP, 5 req/min per QR token
+  - `GET /public/sessions/current`: 30 req/min per session (guest_token)
+  - `POST /public/orders`: 20 req/min per IP, 10 req/min per session (guest_token)
+  - `GET /public/orders/:id`: 60 req/min per session (guest_token)
+- Cart size limits (enforced in middleware):
+  - Max 50 items per order
+  - Max 20 quantity per item
+  - Max 100 total quantity per order
+- Returns standard rate limit headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, `Retry-After` on 429
+
 ---
 
 ## 7. Background jobs (BullMQ)
