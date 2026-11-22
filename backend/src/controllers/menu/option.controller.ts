@@ -19,11 +19,7 @@ export const listMenuItemOptionsController: RequestHandler = async (req, res, ne
       is_active?: boolean;
     };
 
-    const result = await listMenuItemOptions(
-      req.user!,
-      menuItemId,
-      filters,
-    );
+    const result = await listMenuItemOptions(req.user!, menuItemId, filters);
 
     sendPaginated(res, result.options, {
       page: result.page,
@@ -39,11 +35,7 @@ export const getMenuItemOptionController: RequestHandler = async (req, res, next
   try {
     const { menuItemId, id } = req.params as { menuItemId: string; id: string };
 
-    const option = await getMenuItemOption(
-      req.user!,
-      menuItemId,
-      id,
-    );
+    const option = await getMenuItemOption(req.user!, menuItemId, id);
 
     sendSuccess(res, { option });
   } catch (error) {
@@ -56,11 +48,7 @@ export const createMenuItemOptionController: RequestHandler = async (req, res, n
     const { menuItemId } = req.params as { menuItemId: string };
     const input = req.body as { kind: 'variant' | 'addon'; name: string; price_delta?: number };
 
-    const option = await createMenuItemOption(
-      req.user!,
-      menuItemId,
-      input,
-    );
+    const option = await createMenuItemOption(req.user!, menuItemId, input);
 
     sendSuccess(res, { option }, { status: 201 });
   } catch (error) {
@@ -78,12 +66,7 @@ export const updateMenuItemOptionController: RequestHandler = async (req, res, n
       is_active?: boolean;
     };
 
-    const option = await updateMenuItemOption(
-      req.user!,
-      menuItemId,
-      id,
-      input,
-    );
+    const option = await updateMenuItemOption(req.user!, menuItemId, id, input);
 
     sendSuccess(res, { option });
   } catch (error) {
@@ -95,11 +78,7 @@ export const deleteMenuItemOptionController: RequestHandler = async (req, res, n
   try {
     const { menuItemId, id } = req.params as { menuItemId: string; id: string };
 
-    const option = await deleteMenuItemOption(
-      req.user!,
-      menuItemId,
-      id,
-    );
+    const option = await deleteMenuItemOption(req.user!, menuItemId, id);
 
     sendSuccess(res, { option });
   } catch (error) {

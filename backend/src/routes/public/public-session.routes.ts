@@ -3,11 +3,12 @@ import { z } from 'zod';
 
 import {
   getCurrentSessionController,
+  requestBillPublicController,
   startTableSessionController,
 } from '@/controllers/public/public-session.controller';
 import { registry } from '@/docs/openapi';
 import { validate } from '@/middlewares/validate';
-import { startSessionSchema } from '@/validations/public/public-session.schema';
+import { requestBillSchema, startSessionSchema } from '@/validations/public/public-session.schema';
 import { createRateLimiter } from '@/middlewares/rateLimit';
 
 const publicSessionRouter = Router();
@@ -124,6 +125,27 @@ registry.registerPath({
   },
 });
 
+const billRequestResponseSchema = z.object({
+  success: z.boolean(),
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/v1/public/sessions/current/bill-request',
+  tags: ['Public'],
+  summary: 'Request the bill for the current session',
+  description:
+    'Requests a bill for the current guest session, changing session status to bill_requested and table status to needs_bill. ' +
+    'Requires the guest_token cookie set by POST /api/v1/public/sessions.',
+  security: [{ cookieAuth: [] }],
+  responses: {
+    200: successResponse('Bill requested', billRequestResponseSchema),
+    400: errorResponse('Validation error or bill already requested'),
+    401: errorResponse('Unauthenticated'),
+    404: errorResponse('No active session'),
+  },
+});
+
 // Rate limiters for public session endpoints
 const sessionStartRateLimiter = createRateLimiter({
   windowMs: 60 * 1000, // 1 minute
@@ -150,6 +172,16 @@ const currentSessionRateLimiter = createRateLimiter({
   },
 });
 
+const requestBillRateLimiter = createRateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 5, // 5 requests per minute per session
+  keyPrefix: 'public:session:bill',
+  keyGenerator: (req) => {
+    const cookies = req.cookies as Record<string, string | undefined>;
+    return cookies['guest_token'] ?? req.ip ?? 'unknown';
+  },
+});
+
 // Public routes - no authentication required for starting session
 publicSessionRouter.post(
   '/sessions',
@@ -164,6 +196,14 @@ publicSessionRouter.get(
   '/sessions/current',
   currentSessionRateLimiter,
   getCurrentSessionController,
+);
+
+// Guest bill request - requires guest token cookie
+publicSessionRouter.post(
+  '/sessions/current/bill-request',
+  requestBillRateLimiter,
+  validate({ body: requestBillSchema.shape.body }),
+  requestBillPublicController,
 );
 
 export { publicSessionRouter };

@@ -35,7 +35,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 ⬜ todo · 🟡 in progress · ⛔ blocked (waiting for user decision) · ✅ done
 
-**Current task:** `R-006` (Order transitions module) — implementation in progress.
+**Current task:** `R-012` (Request bill, table status updates).
 
 ### Before starting a task, the agent must
 
@@ -141,14 +141,14 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | R-003 | Public: start or join table session, guest cookie | R-002 | | ✅ |
 | R-004 | Public: place order → `pending_confirmation`; server-side pricing; snapshots; order number | R-003 | PD-019, PD-020 | ✅ |
 | R-005 | Public: rate limits per IP, QR token and session; cart size limits | R-004, T-012 | | ✅ |
-| R-006 | Order transitions module (allowed transitions in one place) | R-004 | | ⬜ |
-| R-007 | Waiter: list pending orders, confirm, reject (with reason) | R-006, R-001 | | ⬜ |
-| R-008 | Waiter or Manager places an order for a table (auto-confirmed) | R-006 | | ⬜ |
-| R-009 | Kitchen board query and item/order status updates | R-006 | PD-009, PD-010 | ⬜ |
-| R-010 | Order cancellation with reason and permission rules | R-006 | PD-008 | ⬜ |
-| R-011 | Guest order status and add more orders to the same session | R-004 | | ⬜ |
-| R-012 | Request bill, table status updates (free, occupied, needs bill) | R-011 | | ⬜ |
-| R-013 | Emit socket events for all order and session transitions (after commit) | R-007, R-009, R-012 | | ⬜ |
+| R-006 | Order transitions module (allowed transitions in one place) | R-004 | | ✅ |
+| R-007 | Waiter: list pending orders, confirm, reject (with reason) | R-006, R-001 | | ✅ |
+| R-008 | Waiter or Manager places an order for a table (auto-confirmed) | R-006 | | ✅ |
+| R-009 | Kitchen board query and item/order status updates | R-006 | PD-009, PD-010 | ✅ |
+| R-010 | Order cancellation with reason and permission rules | R-006 | PD-008 | ✅ |
+| R-011 | Guest order status and add more orders to the same session | R-004 | | ✅ |
+| R-012 | Request bill, table status updates (free, occupied, needs bill) | R-011 | | ✅ |
+| R-013 | Emit socket events for all order and session transitions (after commit) | R-007, R-009, R-012 | | ✅ |
 
 ---
 
@@ -156,9 +156,9 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 | ID | Task | Depends | Status |
 |---|---|---|---|
-| I-001 | Ingredient CRUD (org level) | A-009 | ⬜ |
-| I-002 | Recipes: set menu item ingredients and quantities | I-001, M-002 | ⬜ |
-| I-003 | Outlet stock list and low thresholds | I-001, A-010 | ⬜ |
+| I-001 | Ingredient CRUD (org level) | A-009 | ✅ |
+| I-002 | Recipes: set menu item ingredients and quantities | I-001, M-002 | ✅ |
+| I-003 | Outlet stock list and low thresholds | I-001, A-010 | ✅ |
 | I-004 | Restock (Owner, Manager) with movement record | I-003 | ⬜ |
 | I-005 | Stock adjustment and wastage (Owner, Manager, Kitchen) | I-003 | ⬜ |
 | I-006 | Stock movement history endpoint | I-004 | ⬜ |

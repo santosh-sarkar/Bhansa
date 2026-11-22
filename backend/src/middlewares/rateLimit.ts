@@ -26,13 +26,21 @@ export function createRateLimiter(options: RateLimitOptions): RequestHandler {
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const key = `${keyPrefix}:${keyGenerator(req)}`;
-    const current = await redis.incr(key);
+    let current: number;
+    let ttl: number;
+    try {
+      const currentResult = await redis.incr(key);
+      current = currentResult;
 
-    if (current === 1) {
-      await redis.expire(key, windowSec);
+      if (current === 1) {
+        await redis.expire(key, windowSec);
+      }
+
+      ttl = await redis.ttl(key);
+    } catch (err) {
+      throw err;
     }
 
-    const ttl = await redis.ttl(key);
     const remaining = Math.max(0, maxRequests - current);
     const resetTime = Date.now() + ttl * 1000;
 

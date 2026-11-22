@@ -6,4 +6,9 @@ export const startSessionSchema = z.object({
   }),
 });
 
+export const requestBillSchema = z.object({
+  body: z.object({}),
+});
+
 export type StartSessionInput = z.infer<typeof startSessionSchema>;
+export type RequestBillInput = z.infer<typeof requestBillSchema>;

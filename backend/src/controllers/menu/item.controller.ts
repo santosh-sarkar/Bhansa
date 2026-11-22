@@ -20,10 +20,7 @@ export const listMenuItemsController: RequestHandler = async (req, res, next) =>
       search?: string;
     };
 
-    const result = await listMenuItems(
-      req.user!,
-      filters,
-    );
+    const result = await listMenuItems(req.user!, filters);
 
     sendPaginated(res, result.items, {
       page: result.page,
@@ -39,10 +36,7 @@ export const getMenuItemController: RequestHandler = async (req, res, next) => {
   try {
     const { id } = req.params as { id: string };
 
-    const item = await getMenuItem(
-      req.user!,
-      id,
-    );
+    const item = await getMenuItem(req.user!, id);
 
     sendSuccess(res, { item });
   } catch (error) {
@@ -63,10 +57,7 @@ export const createMenuItemController: RequestHandler = async (req, res, next) =
       sort_order?: number;
     };
 
-    const item = await createMenuItem(
-      req.user!,
-      input,
-    );
+    const item = await createMenuItem(req.user!, input);
 
     sendSuccess(res, { item }, { status: 201 });
   } catch (error) {
@@ -89,11 +80,7 @@ export const updateMenuItemController: RequestHandler = async (req, res, next) =
       is_active?: boolean;
     };
 
-    const item = await updateMenuItem(
-      req.user!,
-      id,
-      input,
-    );
+    const item = await updateMenuItem(req.user!, id, input);
 
     sendSuccess(res, { item });
   } catch (error) {
@@ -105,10 +92,7 @@ export const deleteMenuItemController: RequestHandler = async (req, res, next) =
   try {
     const { id } = req.params as { id: string };
 
-    const item = await deleteMenuItem(
-      req.user!,
-      id,
-    );
+    const item = await deleteMenuItem(req.user!, id);
 
     sendSuccess(res, { item });
   } catch (error) {

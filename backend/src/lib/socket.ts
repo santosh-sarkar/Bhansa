@@ -21,7 +21,18 @@ export interface AuthenticatedSocket extends Socket {
   outletId?: string;
 }
 
+// Module-level variable to store the Socket.IO server instance
+let _io: Server | null = null;
+
 const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
+
+/**
+ * Get the Socket.IO server instance.
+ * Must be called after `initializeSocketServer` has been called.
+ */
+export function getIO(): Server | null {
+  return _io;
+}
 
 export async function verifySocketToken(token: string): Promise<SocketUser | null> {
   try {
@@ -102,6 +113,9 @@ export function initializeSocketServer(httpServer: HttpServer): Server {
     },
     path: '/socket.io',
   });
+
+  // Store the IO instance for later use
+  _io = io;
 
   // Authentication middleware
   io.use((socket: AuthenticatedSocket, next) => {

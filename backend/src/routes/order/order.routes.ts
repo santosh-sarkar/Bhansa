@@ -5,6 +5,7 @@ import {
   cancelOrderController,
   closeSessionController,
   confirmOrderController,
+  createStaffOrderController,
   getKitchenBoardController,
   getOrderController,
   listOrdersController,
@@ -21,6 +22,7 @@ import { validate } from '@/middlewares/validate';
 import { outletContextMiddleware } from '@/middlewares/outletContext';
 import {
   cancelOrderSchema,
+  createStaffOrderSchema,
   kitchenBoardSchema,
   listOrdersSchema,
   listSessionsSchema,
@@ -211,8 +213,7 @@ registry.registerPath({
   path: '/api/v1/orders',
   tags: ['Orders'],
   summary: 'List orders',
-  description:
-    'Returns paginated list of orders with filters. Requires order.create permission.',
+  description: 'Returns paginated list of orders with filters. Requires order.create permission.',
   security: [{ cookieAuth: [] }],
   request: { query: listOrdersSchema.shape.query },
   responses: {
@@ -223,8 +224,55 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  method: 'post',
+  path: '/api/v1/orders',
+  tags: ['Orders'],
+  summary: 'Place order for a table (auto-confirmed)',
+  description:
+    'Creates a staff order for a table with auto-confirmed status (placed). Waiters and Managers can place orders on behalf of guests. Requires order.create permission.',
+  security: [{ cookieAuth: [] }],
+  request: {
+    body: { content: { 'application/json': { schema: createStaffOrderSchema.shape.body } } },
+  },
+  responses: {
+    201: successResponse(
+      'Order created',
+      z.object({
+        order: z.object({
+          id: z.string().uuid(),
+          order_number: z.number().int(),
+          status: z.string(),
+          subtotal: z.string(),
+          tax_amount: z.string(),
+          discount_amount: z.string(),
+          total: z.string(),
+          created_at: z.string().datetime(),
+          items: z.array(
+            z.object({
+              id: z.string().uuid(),
+              menu_item_id: z.string().uuid(),
+              name: z.string(),
+              quantity: z.number().int(),
+              unit_price: z.string(),
+              line_total: z.string(),
+              status: z.string(),
+              options: z.unknown(),
+              notes: z.string().nullable(),
+            }),
+          ),
+        }),
+      }),
+    ),
+    400: errorResponse('Validation error'),
+    401: errorResponse('Unauthenticated'),
+    403: errorResponse('Forbidden'),
+    404: errorResponse('Table not found'),
+  },
+});
+
+registry.registerPath({
   method: 'get',
-  path: '/api/v1/orders/{id}',
+  path: '/api/v1/orders/:id',
   tags: ['Orders'],
   summary: 'Get order details',
   description: 'Returns order details with items and payments. Requires order.create permission.',
@@ -240,7 +288,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'patch',
-  path: '/api/v1/orders/{id}/confirm',
+  path: '/api/v1/orders/:id/confirm',
   tags: ['Orders'],
   summary: 'Confirm pending guest order',
   description:
@@ -248,7 +296,13 @@ registry.registerPath({
   security: [{ cookieAuth: [] }],
   request: { params: orderIdSchema.shape.params },
   responses: {
-    200: successResponse('Order confirmed', z.object({ order: z.object({ id: z.string().uuid(), status: z.string() }), previousStatus: z.string() })),
+    200: successResponse(
+      'Order confirmed',
+      z.object({
+        order: z.object({ id: z.string().uuid(), status: z.string() }),
+        previousStatus: z.string(),
+      }),
+    ),
     400: errorResponse('Invalid state transition'),
     401: errorResponse('Unauthenticated'),
     403: errorResponse('Forbidden'),
@@ -258,7 +312,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'patch',
-  path: '/api/v1/orders/{id}/reject',
+  path: '/api/v1/orders/:id/reject',
   tags: ['Orders'],
   summary: 'Reject pending guest order',
   description:
@@ -269,7 +323,13 @@ registry.registerPath({
     body: { content: { 'application/json': { schema: rejectOrderSchema.shape.body } } },
   },
   responses: {
-    200: successResponse('Order rejected', z.object({ order: z.object({ id: z.string().uuid(), status: z.string() }), previousStatus: z.string() })),
+    200: successResponse(
+      'Order rejected',
+      z.object({
+        order: z.object({ id: z.string().uuid(), status: z.string() }),
+        previousStatus: z.string(),
+      }),
+    ),
     400: errorResponse('Validation error or invalid state transition'),
     401: errorResponse('Unauthenticated'),
     403: errorResponse('Forbidden'),
@@ -279,18 +339,23 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'patch',
-  path: '/api/v1/orders/{id}/status',
+  path: '/api/v1/orders/:id/status',
   tags: ['Orders'],
   summary: 'Update order status',
-  description:
-    'Moves order through allowed transitions. Requires order.update_status permission.',
+  description: 'Moves order through allowed transitions. Requires order.update_status permission.',
   security: [{ cookieAuth: [] }],
   request: {
     params: orderIdSchema.shape.params,
     body: { content: { 'application/json': { schema: updateOrderStatusSchema.shape.body } } },
   },
   responses: {
-    200: successResponse('Order status updated', z.object({ order: z.object({ id: z.string().uuid(), status: z.string() }), previousStatus: z.string() })),
+    200: successResponse(
+      'Order status updated',
+      z.object({
+        order: z.object({ id: z.string().uuid(), status: z.string() }),
+        previousStatus: z.string(),
+      }),
+    ),
     400: errorResponse('Invalid state transition'),
     401: errorResponse('Unauthenticated'),
     403: errorResponse('Forbidden'),
@@ -300,7 +365,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'patch',
-  path: '/api/v1/orders/{id}/cancel',
+  path: '/api/v1/orders/:id/cancel',
   tags: ['Orders'],
   summary: 'Cancel order with reason',
   description:
@@ -311,7 +376,13 @@ registry.registerPath({
     body: { content: { 'application/json': { schema: cancelOrderSchema.shape.body } } },
   },
   responses: {
-    200: successResponse('Order cancelled', z.object({ order: z.object({ id: z.string().uuid(), status: z.string() }), previousStatus: z.string() })),
+    200: successResponse(
+      'Order cancelled',
+      z.object({
+        order: z.object({ id: z.string().uuid(), status: z.string() }),
+        previousStatus: z.string(),
+      }),
+    ),
     400: errorResponse('Validation error or invalid cancellation'),
     401: errorResponse('Unauthenticated'),
     403: errorResponse('Forbidden'),
@@ -321,17 +392,31 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'patch',
-  path: '/api/v1/order-items/{id}/status',
+  path: '/api/v1/order-items/:id/status',
   tags: ['Orders'],
   summary: 'Update order item status',
   description: 'Updates individual order item status. Requires order.update_status permission.',
   security: [{ cookieAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
-    body: { content: { 'application/json': { schema: z.object({ status: z.enum(['placed', 'preparing', 'ready', 'served', 'cancelled']) }) } } },
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            status: z.enum(['placed', 'preparing', 'ready', 'served', 'cancelled']),
+          }),
+        },
+      },
+    },
   },
   responses: {
-    200: successResponse('Item status updated', z.object({ item: z.object({ id: z.string().uuid(), status: z.string() }), previousStatus: z.string() })),
+    200: successResponse(
+      'Item status updated',
+      z.object({
+        item: z.object({ id: z.string().uuid(), status: z.string() }),
+        previousStatus: z.string(),
+      }),
+    ),
     400: errorResponse('Invalid state transition'),
     401: errorResponse('Unauthenticated'),
     403: errorResponse('Forbidden'),
@@ -372,7 +457,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'post',
-  path: '/api/v1/sessions/{id}/bill',
+  path: '/api/v1/sessions/:id/bill',
   tags: ['Sessions'],
   summary: 'Request bill for session',
   description:
@@ -389,11 +474,10 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'post',
-  path: '/api/v1/sessions/{id}/close',
+  path: '/api/v1/sessions/:id/close',
   tags: ['Sessions'],
   summary: 'Close session',
-  description:
-    'Closes the session after all orders are paid. Requires payment.record permission.',
+  description: 'Closes the session after all orders are paid. Requires payment.record permission.',
   security: [{ cookieAuth: [] }],
   request: { params: sessionIdSchema.shape.params },
   responses: {
@@ -416,8 +500,16 @@ orderRouter.get(
   listOrdersController,
 );
 
+// Staff order creation - auto-confirmed to placed
+orderRouter.post(
+  '/',
+  requireOrgPermission('order.create'),
+  validate({ body: createStaffOrderSchema.shape.body }),
+  createStaffOrderController,
+);
+
 orderRouter.get(
-  '/{id}',
+  '/:id',
   requireOrgPermission('order.create'),
   validate({ params: orderIdSchema.shape.params }),
   getOrderController,
@@ -425,14 +517,14 @@ orderRouter.get(
 
 // Confirm/reject pending orders - waiter/manager
 orderRouter.patch(
-  '/{id}/confirm',
+  '/:id/confirm',
   requireOrgPermission('order.update_status'),
   validate({ params: orderIdSchema.shape.params }),
   confirmOrderController,
 );
 
 orderRouter.patch(
-  '/{id}/reject',
+  '/:id/reject',
   requireOrgPermission('order.update_status'),
   validate({ params: orderIdSchema.shape.params, body: rejectOrderSchema.shape.body }),
   rejectOrderController,
@@ -440,7 +532,7 @@ orderRouter.patch(
 
 // General status transitions
 orderRouter.patch(
-  '/{id}/status',
+  '/:id/status',
   requireOrgPermission('order.update_status'),
   validate({ params: orderIdSchema.shape.params, body: updateOrderStatusSchema.shape.body }),
   updateOrderStatusController,
@@ -448,7 +540,7 @@ orderRouter.patch(
 
 // Cancel order with reason
 orderRouter.patch(
-  '/{id}/cancel',
+  '/:id/cancel',
   requireOrgPermission('order.cancel'),
   validate({ params: orderIdSchema.shape.params, body: cancelOrderSchema.shape.body }),
   cancelOrderController,
@@ -456,9 +548,12 @@ orderRouter.patch(
 
 // Order item status updates
 orderRouter.patch(
-  '/items/{id}/status',
+  '/items/:id/status',
   requireOrgPermission('order.update_status'),
-  validate({ params: z.object({ id: z.string().uuid() }), body: updateOrderItemStatusSchema.shape.body }),
+  validate({
+    params: z.object({ id: z.string().uuid() }),
+    body: updateOrderItemStatusSchema.shape.body,
+  }),
   updateOrderItemStatusController,
 );
 
@@ -479,14 +574,14 @@ orderRouter.get(
 );
 
 orderRouter.post(
-  '/sessions/{id}/bill',
+  '/sessions/:id/bill',
   requireOrgPermission('payment.record'),
   validate({ params: sessionIdSchema }),
   requestBillController,
 );
 
 orderRouter.post(
-  '/sessions/{id}/close',
+  '/sessions/:id/close',
   requireOrgPermission('payment.record'),
   validate({ params: sessionIdSchema }),
   closeSessionController,

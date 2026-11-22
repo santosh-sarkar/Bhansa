@@ -11,6 +11,7 @@ import { publicOrderRouter } from '@/routes/public/public-order.routes';
 import { publicSessionRouter } from '@/routes/public/public-session.routes';
 import { publicTableRouter } from '@/routes/public/public-table.routes';
 import { menuRouter } from '@/routes/menu/menu.routes';
+import { inventoryRouter } from '@/routes/inventory/inventory.routes';
 
 export const apiRouter = Router();
 
@@ -25,3 +26,4 @@ apiRouter.use('/public', publicSessionRouter);
 apiRouter.use('/public', publicOrderRouter);
 apiRouter.use('/orders', orderRouter);
 apiRouter.use('/menu', menuRouter);
+apiRouter.use('/inventory', inventoryRouter);

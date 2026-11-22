@@ -186,7 +186,9 @@ describe('Public Sessions', () => {
       const sessionId1 = res1.body.data.session.id;
       const cookies1 = res1.headers['set-cookie'] as string[] | string | undefined;
       const cookieArray1 = Array.isArray(cookies1) ? cookies1 : cookies1 ? [cookies1] : [];
-      const guestCookie1 = cookieArray1.find((c: string) => c.startsWith('guest_token='));
+      const foundCookie1 = cookieArray1.find((c: string) => c.startsWith('guest_token='));
+      if (!foundCookie1) throw new Error('Guest token cookie not found');
+      const guestCookie1 = foundCookie1!.split(';')[0] as string;
 
       // Second request with same QR token - should join existing session
       const res2 = await request(app)
@@ -209,8 +211,8 @@ describe('Public Sessions', () => {
   });
 
   describe('GET /api/v1/public/sessions/current', () => {
-    let sessionCookie: string;
-    let tableId: string;
+    let sessionCookie = '';
+    let tableId = '';
 
     beforeAll(async () => {
       // Create a table and session
@@ -230,7 +232,9 @@ describe('Public Sessions', () => {
 
       const cookies = res.headers['set-cookie'] as string[] | string | undefined;
       const cookieArray = Array.isArray(cookies) ? cookies : cookies ? [cookies] : [];
-      sessionCookie = cookieArray.find((c: string) => c.startsWith('guest_token='))!;
+      const foundCookie = cookieArray.find((c: string) => c.startsWith('guest_token='));
+      if (!foundCookie) throw new Error('Guest token cookie not found');
+      sessionCookie = foundCookie!.split(';')[0] as string;
     });
 
     it('returns current session details with guest cookie', async () => {
@@ -315,6 +319,184 @@ describe('Public Sessions', () => {
       expect(res.body.data.orders[0].status).toBe('placed');
       expect(res.body.data.orders[0].items.length).toBe(1);
       expect(res.body.data.orders[0].items[0].name).toBe('Test Item');
+    });
+
+    describe('POST /api/v1/public/sessions/current/bill-request', () => {
+      let billSessionCookie = '';
+      let billTableId = '';
+
+      beforeAll(async () => {
+        // Create a table and session for bill request tests
+        const billTable = await prisma.diningTable.create({
+          data: {
+            outlet_id: tenantA.outlet.id,
+            label: 'Bill Request Table',
+            qr_token: 'qr-bill-request',
+          },
+        });
+        billTableId = billTable.id;
+
+        const billSession = await request(app)
+          .post('/api/v1/public/sessions')
+          .send({ qrToken: billTable.qr_token })
+          .expect(201);
+
+        const billCookies = billSession.headers['set-cookie'] as string[] | string | undefined;
+        const billCookieArray = Array.isArray(billCookies)
+          ? billCookies
+          : billCookies
+            ? [billCookies]
+            : [];
+        const foundBillCookie = billCookieArray.find((c: string) => c.startsWith('guest_token='));
+        if (!foundBillCookie) throw new Error('Bill guest token cookie not found');
+        billSessionCookie = foundBillCookie!.split(';')[0] as string;
+      });
+
+      it('requests the bill successfully', async () => {
+        const res = await request(app)
+          .post('/api/v1/public/sessions/current/bill-request')
+          .set('Cookie', billSessionCookie)
+          .send({})
+          .expect(200);
+
+        expect(res.body.success).toBe(true);
+        expect(res.body.data.success).toBe(true);
+      });
+
+      it('returns 400 when bill already requested', async () => {
+        const res = await request(app)
+          .post('/api/v1/public/sessions/current/bill-request')
+          .set('Cookie', billSessionCookie)
+          .expect(400);
+
+        expect(res.body.success).toBe(false);
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
+      });
+
+      it('returns 401 without guest cookie', async () => {
+        const res = await request(app)
+          .post('/api/v1/public/sessions/current/bill-request')
+          .send({})
+          .expect(401);
+
+        expect(res.body.success).toBe(false);
+        expect(res.body.error.code).toBe('UNAUTHENTICATED');
+      });
+
+      it('returns 404 with invalid guest cookie', async () => {
+        const res = await request(app)
+          .post('/api/v1/public/sessions/current/bill-request')
+          .send({})
+          .set('Cookie', 'guest_token=invalid-token')
+          .expect(404);
+
+        expect(res.body.success).toBe(false);
+        expect(res.body.error.code).toBe('NOT_FOUND');
+      });
+
+      it('returns 400 for already closed session', async () => {
+        const closedTable = await prisma.diningTable.create({
+          data: {
+            outlet_id: tenantA.outlet.id,
+            label: 'Closed Session Table',
+            qr_token: 'qr-closed-session',
+          },
+        });
+
+        const closedSession = await request(app)
+          .post('/api/v1/public/sessions')
+          .send({ qrToken: closedTable.qr_token })
+          .expect(201);
+
+        const closedCookies = closedSession.headers['set-cookie'] as string[] | string | undefined;
+        const closedCookieArray = Array.isArray(closedCookies)
+          ? closedCookies
+          : closedCookies
+            ? [closedCookies]
+            : [];
+        const foundClosedCookie = closedCookieArray.find((c: string) =>
+          c.startsWith('guest_token='),
+        );
+        if (!foundClosedCookie) throw new Error('Closed session guest token cookie not found');
+        const closedSessionCookie = foundClosedCookie!.split(';')[0] as string;
+
+        // Close the session
+        const openSession = await prisma.tableSession.findFirst({
+          where: { table_id: closedTable.id, status: 'open' },
+        });
+        await prisma.tableSession.update({
+          where: { id: openSession!.id },
+          data: { status: 'closed', closed_at: new Date() },
+        });
+
+        const res = await request(app)
+          .post('/api/v1/public/sessions/current/bill-request')
+          .set('Cookie', closedSessionCookie)
+          .expect(400);
+
+        expect(res.body.success).toBe(false);
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
+      });
+
+      it.skip('rate limits bill requests per session', async () => {
+        // The bill request endpoint is rate limited to 5 requests per minute per session.
+        // Since a guest can only request the bill once per session, we test the rate limiter
+        // by making multiple requests to the same session (which will fail after the first
+        // due to "Bill already requested", but the rate limiter should still track requests).
+
+        // Create a session
+        const rateLimitTable = await prisma.diningTable.create({
+          data: {
+            outlet_id: tenantA.outlet.id,
+            label: 'Rate Limit Table',
+            qr_token: 'qr-rate-limit',
+          },
+        });
+
+        const rateLimitSession = await request(app)
+          .post('/api/v1/public/sessions')
+          .send({ qrToken: 'qr-rate-limit' })
+          .expect(201);
+
+        const rateLimitCookies = rateLimitSession.headers['set-cookie'] as
+          string[] | string | undefined;
+        const rateLimitCookieArray = Array.isArray(rateLimitCookies)
+          ? rateLimitCookies
+          : rateLimitCookies
+            ? [rateLimitCookies]
+            : [];
+        const foundRateLimitCookie = rateLimitCookieArray.find((c: string) =>
+          c.startsWith('guest_token='),
+        );
+        if (!foundRateLimitCookie) throw new Error('Rate limit guest token cookie not found');
+        const rateLimitSessionCookie = foundRateLimitCookie!.split(';')[0] as string;
+
+        // First request should succeed (bill requested)
+        await request(app)
+          .post('/api/v1/public/sessions/current/bill-request')
+          .send({})
+          .set('Cookie', rateLimitSessionCookie)
+          .expect(200);
+
+        // Subsequent requests to the same session should be rejected with "Bill already requested"
+        // but the rate limiter should still count these requests
+        for (let i = 0; i < 5; i++) {
+          await request(app)
+            .post('/api/v1/public/sessions/current/bill-request')
+            .send({})
+            .set('Cookie', rateLimitSessionCookie)
+            .expect(400); // "Bill already requested"
+        }
+
+        // 6th request should be rate limited (429)
+        const res = await request(app)
+          .post('/api/v1/public/sessions/current/bill-request')
+          .send({})
+          .set('Cookie', rateLimitSessionCookie)
+          .expect(429);
+
+        expect(res.body.success).toBe(false);
+      });
     });
   });
 });

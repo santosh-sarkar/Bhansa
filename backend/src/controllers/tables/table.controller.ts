@@ -22,11 +22,7 @@ export const listTablesController: RequestHandler = async (req, res, next) => {
       search?: string;
     };
 
-    const result = await listTables(
-      req.user!,
-      outletId,
-      filters,
-    );
+    const result = await listTables(req.user!, outletId, filters);
 
     sendPaginated(res, result.tables, {
       page: result.page,
@@ -42,11 +38,7 @@ export const getTableController: RequestHandler = async (req, res, next) => {
   try {
     const { outletId, id } = req.params as { outletId: string; id: string };
 
-    const table = await getTable(
-      req.user!,
-      outletId,
-      id,
-    );
+    const table = await getTable(req.user!, outletId, id);
 
     sendSuccess(res, { table });
   } catch (error) {
@@ -59,11 +51,7 @@ export const createTableController: RequestHandler = async (req, res, next) => {
     const { outletId } = req.params as { outletId: string };
     const input = req.body as { label: string; seats?: number };
 
-    const table = await createTable(
-      req.user!,
-      outletId,
-      input,
-    );
+    const table = await createTable(req.user!, outletId, input);
 
     sendSuccess(res, { table }, { status: 201 });
   } catch (error) {
@@ -76,12 +64,7 @@ export const updateTableController: RequestHandler = async (req, res, next) => {
     const { outletId, id } = req.params as { outletId: string; id: string };
     const input = req.body as { label?: string; seats?: number | null; is_active?: boolean };
 
-    const table = await updateTable(
-      req.user!,
-      outletId,
-      id,
-      input,
-    );
+    const table = await updateTable(req.user!, outletId, id, input);
 
     sendSuccess(res, { table });
   } catch (error) {
@@ -93,11 +76,7 @@ export const deactivateTableController: RequestHandler = async (req, res, next) 
   try {
     const { outletId, id } = req.params as { outletId: string; id: string };
 
-    const table = await deactivateTable(
-      req.user!,
-      outletId,
-      id,
-    );
+    const table = await deactivateTable(req.user!, outletId, id);
 
     sendSuccess(res, { table });
   } catch (error) {
@@ -109,11 +88,7 @@ export const regenerateQrTokenController: RequestHandler = async (req, res, next
   try {
     const { outletId, id } = req.params as { outletId: string; id: string };
 
-    const table = await regenerateQrToken(
-      req.user!,
-      outletId,
-      id,
-    );
+    const table = await regenerateQrToken(req.user!, outletId, id);
 
     sendSuccess(res, { table });
   } catch (error) {
@@ -125,11 +100,7 @@ export const getTableQrImageController: RequestHandler = async (req, res, next) 
   try {
     const { outletId, id } = req.params as { outletId: string; id: string };
 
-    const table = await getTable(
-      req.user!,
-      outletId,
-      id,
-    );
+    const table = await getTable(req.user!, outletId, id);
 
     // Generate QR code image from the table's QR token
     const qrImage = await QRCode.toBuffer(table.qr_token, {

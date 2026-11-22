@@ -6,6 +6,8 @@ import {
   getManageableOutletIds,
   type StaffActor,
 } from '@/services/staff/access';
+import { getIO } from '@/lib/socket';
+import { emitToOutletWaiters, emitToOutletKitchen, emitToOutletManagers } from '@/lib/socket';
 
 export interface EffectiveMenuCategory {
   id: string;
@@ -1554,6 +1556,19 @@ export async function toggleMenuItemAvailability(
       },
     },
   });
+
+  // Emit socket event for item availability change
+  const io = getIO();
+  if (io) {
+    const eventData = {
+      menuItemId: itemId,
+      outletId,
+      isAvailable,
+    };
+    emitToOutletWaiters(io, outletId, 'item:availability_changed', eventData);
+    emitToOutletKitchen(io, outletId, 'item:availability_changed', eventData);
+    emitToOutletManagers(io, outletId, 'item:availability_changed', eventData);
+  }
 
   // Format price_override as string with 2 decimal places
   return {

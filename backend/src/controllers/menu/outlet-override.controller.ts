@@ -11,10 +11,7 @@ export const getMenuItemOutletOverridesController: RequestHandler = async (req, 
   try {
     const { id } = req.params as { id: string };
 
-    const overrides = await getMenuItemOutletOverrides(
-      req.user!,
-      id,
-    );
+    const overrides = await getMenuItemOutletOverrides(req.user!, id);
 
     sendSuccess(res, overrides);
   } catch (error) {
@@ -34,11 +31,7 @@ export const updateMenuItemOutletOverridesController: RequestHandler = async (re
       }>;
     };
 
-    const overrides_result = await updateMenuItemOutletOverrides(
-      req.user!,
-      id,
-      overrides,
-    );
+    const overrides_result = await updateMenuItemOutletOverrides(req.user!, id, overrides);
 
     sendSuccess(res, overrides_result);
   } catch (error) {
@@ -54,12 +47,7 @@ export const toggleMenuItemAvailabilityController: RequestHandler = async (req, 
       is_available: boolean;
     };
 
-    const override = await toggleMenuItemAvailability(
-      req.user!,
-      id,
-      outlet_id,
-      is_available,
-    );
+    const override = await toggleMenuItemAvailability(req.user!, id, outlet_id, is_available);
 
     sendSuccess(res, override);
   } catch (error) {

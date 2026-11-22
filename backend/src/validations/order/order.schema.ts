@@ -4,15 +4,17 @@ export const listOrdersSchema = z.object({
   query: z.object({
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(100).default(20),
-    status: z.enum([
-      'pending_confirmation',
-      'placed',
-      'preparing',
-      'ready',
-      'served',
-      'completed',
-      'cancelled',
-    ]).optional(),
+    status: z
+      .enum([
+        'pending_confirmation',
+        'placed',
+        'preparing',
+        'ready',
+        'served',
+        'completed',
+        'cancelled',
+      ])
+      .optional(),
     table_id: z.string().uuid().optional(),
     date_from: z.string().datetime().optional(),
     date_to: z.string().datetime().optional(),
@@ -92,6 +94,30 @@ export const kitchenBoardSchema = z.object({
   }),
 });
 
+export const createStaffOrderSchema = z.object({
+  body: z.object({
+    table_id: z.string().uuid({ message: 'Invalid table ID' }),
+    items: z
+      .array(
+        z.object({
+          menuItemId: z.string().uuid({ message: 'Invalid menu item ID' }),
+          quantity: z.number().int().positive({ message: 'Quantity must be positive' }),
+          options: z
+            .array(
+              z.object({
+                optionId: z.string().uuid({ message: 'Invalid option ID' }),
+                quantity: z.number().int().positive(),
+              }),
+            )
+            .optional(),
+          notes: z.string().max(500).optional(),
+        }),
+      )
+      .min(1, 'At least one item is required'),
+    notes: z.string().max(500).optional(),
+  }),
+});
+
 export type ListOrdersInput = z.infer<typeof listOrdersSchema>;
 export type OrderIdInput = z.infer<typeof orderIdSchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
@@ -101,3 +127,4 @@ export type UpdateOrderItemStatusInput = z.infer<typeof updateOrderItemStatusSch
 export type ListSessionsInput = z.infer<typeof listSessionsSchema>;
 export type SessionIdInput = z.infer<typeof sessionIdSchema>;
 export type KitchenBoardInput = z.infer<typeof kitchenBoardSchema>;
+export type CreateStaffOrderInput = z.infer<typeof createStaffOrderSchema>;

@@ -5,6 +5,8 @@ import { AppError } from '@/errors/AppError';
 import { prisma } from '@/lib/prisma';
 import { generateSecureToken, hashToken } from '@/utils/token';
 import { GUEST_COOKIE_NAME, setGuestCookie, clearGuestCookie } from '@/utils/cookies';
+import { getIO } from '@/lib/socket';
+import { emitToOutletManagers } from '@/lib/socket';
 
 export interface PublicSessionStartInput {
   qrToken: string;
@@ -321,6 +323,67 @@ export async function getCurrentSession(req: Request): Promise<CurrentSessionRes
       })),
     })),
   };
+}
+
+/**
+ * Requests the bill for the current guest session.
+ * Changes session status to bill_requested and table status to needs_bill.
+ */
+export async function requestBillPublic(req: Request): Promise<{ success: boolean }> {
+  const cookies = req.cookies as Record<string, string | undefined>;
+  const guestToken = cookies[GUEST_COOKIE_NAME];
+
+  if (!guestToken) {
+    throw new AppError('UNAUTHENTICATED', 'No active session', 401);
+  }
+
+  const { hashToken } = await import('@/utils/token');
+  const guestTokenHash = hashToken(guestToken);
+
+  const session = await prisma.tableSession.findFirst({
+    where: {
+      guest_token: guestTokenHash,
+      status: { not: 'closed' },
+    },
+    include: { table: true },
+  });
+
+  if (!session) {
+    throw new AppError('NOT_FOUND', 'No active session', 404);
+  }
+
+  if (session.status === 'bill_requested') {
+    throw new AppError('VALIDATION_ERROR', 'Bill already requested', 400);
+  }
+
+  if (session.status === 'closed') {
+    throw new AppError('VALIDATION_ERROR', 'Session already closed', 400);
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.tableSession.update({
+      where: { id: session.id },
+      data: { status: 'bill_requested' },
+    });
+
+    if (session.table_id) {
+      await tx.diningTable.update({
+        where: { id: session.table_id },
+        data: { status: 'needs_bill' },
+      });
+    }
+  });
+
+  // Emit socket event for bill requested
+  const io = getIO();
+  if (io && session.table_id) {
+    emitToOutletManagers(io, session.table.outlet_id, 'session:bill_requested', {
+      sessionId: session.id,
+      tableLabel: session.table.label,
+    });
+  }
+
+  return { success: true };
 }
 
 export { clearGuestCookie };

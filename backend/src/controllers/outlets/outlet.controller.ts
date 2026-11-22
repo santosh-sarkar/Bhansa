@@ -19,10 +19,7 @@ export const listOutletsController: RequestHandler = async (req, res, next) => {
       search?: string;
     };
 
-    const result = await listOutlets(
-      req.user!,
-      filters,
-    );
+    const result = await listOutlets(req.user!, filters);
 
     sendPaginated(res, result.outlets, {
       page: result.page,
@@ -38,10 +35,7 @@ export const getOutletController: RequestHandler = async (req, res, next) => {
   try {
     const { id } = req.params as { id: string };
 
-    const outlet = await getOutlet(
-      req.user!,
-      id,
-    );
+    const outlet = await getOutlet(req.user!, id);
 
     sendSuccess(res, { outlet });
   } catch (error) {
@@ -60,10 +54,7 @@ export const createOutletController: RequestHandler = async (req, res, next) => 
       service_charge_percent?: number;
     };
 
-    const outlet = await createOutlet(
-      req.user!,
-      input,
-    );
+    const outlet = await createOutlet(req.user!, input);
 
     sendSuccess(res, { outlet }, { status: 201 });
   } catch (error) {
@@ -84,11 +75,7 @@ export const updateOutletController: RequestHandler = async (req, res, next) => 
       is_active?: boolean;
     };
 
-    const outlet = await updateOutlet(
-      req.user!,
-      id,
-      input,
-    );
+    const outlet = await updateOutlet(req.user!, id, input);
 
     sendSuccess(res, { outlet });
   } catch (error) {
@@ -100,10 +87,7 @@ export const deactivateOutletController: RequestHandler = async (req, res, next)
   try {
     const { id } = req.params as { id: string };
 
-    const outlet = await deactivateOutlet(
-      req.user!,
-      id,
-    );
+    const outlet = await deactivateOutlet(req.user!, id);
 
     sendSuccess(res, { outlet });
   } catch (error) {
@@ -115,10 +99,7 @@ export const setActiveOutletController: RequestHandler = async (req, res, next) 
   try {
     const input = req.body as { outlet_id: string };
 
-    const outlet = await setActiveOutlet(
-      req.user!,
-      input.outlet_id,
-    );
+    const outlet = await setActiveOutlet(req.user!, input.outlet_id);
 
     sendSuccess(res, { outlet });
   } catch (error) {

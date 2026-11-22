@@ -18,10 +18,7 @@ export const listCategoriesController: RequestHandler = async (req, res, next) =
       search?: string;
     };
 
-    const result = await listCategories(
-      req.user!,
-      filters,
-    );
+    const result = await listCategories(req.user!, filters);
 
     sendPaginated(res, result.categories, {
       page: result.page,
@@ -37,10 +34,7 @@ export const getCategoryController: RequestHandler = async (req, res, next) => {
   try {
     const { id } = req.params as { id: string };
 
-    const category = await getCategory(
-      req.user!,
-      id,
-    );
+    const category = await getCategory(req.user!, id);
 
     sendSuccess(res, { category });
   } catch (error) {
@@ -52,10 +46,7 @@ export const createCategoryController: RequestHandler = async (req, res, next) =
   try {
     const input = req.body as { name: string; sort_order?: number };
 
-    const category = await createCategory(
-      req.user!,
-      input,
-    );
+    const category = await createCategory(req.user!, input);
 
     sendSuccess(res, { category }, { status: 201 });
   } catch (error) {
@@ -68,11 +59,7 @@ export const updateCategoryController: RequestHandler = async (req, res, next) =
     const { id } = req.params as { id: string };
     const input = req.body as { name?: string; sort_order?: number; is_active?: boolean };
 
-    const category = await updateCategory(
-      req.user!,
-      id,
-      input,
-    );
+    const category = await updateCategory(req.user!, id, input);
 
     sendSuccess(res, { category });
   } catch (error) {
@@ -84,10 +71,7 @@ export const deleteCategoryController: RequestHandler = async (req, res, next) =
   try {
     const { id } = req.params as { id: string };
 
-    const category = await deleteCategory(
-      req.user!,
-      id,
-    );
+    const category = await deleteCategory(req.user!, id);
 
     sendSuccess(res, { category });
   } catch (error) {
