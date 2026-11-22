@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 
 import { ingredientRouter } from '@/routes/inventory/ingredient.routes';
+import { restockRouter } from '@/routes/inventory/restock.routes';
 import {
   listOutletStockController,
   getOutletStockController,
@@ -20,10 +21,11 @@ import {
 
 const inventoryRouter = Router();
 
-inventoryRouter.use('/ingredients', ingredientRouter);
-
-// Outlet stock routes - mounted directly on inventory router
+// All routes require authentication
 inventoryRouter.use(authMiddleware);
+
+inventoryRouter.use('/ingredients', ingredientRouter);
+inventoryRouter.use(restockRouter);
 
 // List outlet stock
 inventoryRouter.get(
