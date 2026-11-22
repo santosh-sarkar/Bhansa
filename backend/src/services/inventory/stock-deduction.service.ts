@@ -54,6 +54,7 @@ export async function deductStockForOrder(
 
       // Use SELECT FOR UPDATE to lock the stock row
       // This prevents race conditions when multiple orders are confirmed simultaneously
+      // Cast UUIDs to ensure proper type matching
       const stock = await tx.$queryRaw<
         Array<{
           outlet_id: string;
@@ -64,7 +65,7 @@ export async function deductStockForOrder(
       >`
         SELECT outlet_id, ingredient_id, quantity, low_threshold
         FROM "outlet_stock"
-        WHERE outlet_id = ${outletId} AND ingredient_id = ${r.ingredient_id}
+        WHERE outlet_id = ${outletId}::uuid AND ingredient_id = ${r.ingredient_id}::uuid
         FOR UPDATE
       `;
 
