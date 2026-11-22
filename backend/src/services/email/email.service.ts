@@ -10,6 +10,7 @@ import {
   trialExpiredTemplate,
   trialSuspendedTemplate,
 } from '@/lib/trialEmailTemplates';
+import { lowStockAlertTemplate } from '@/lib/lowStockEmailTemplates';
 
 const isTest = process.env.NODE_ENV === 'test';
 
@@ -31,6 +32,17 @@ export interface EmailService {
   ): Promise<void>;
   sendTrialExpired(email: string, organizationName: string): Promise<void>;
   sendTrialSuspended(email: string, organizationName: string): Promise<void>;
+  sendLowStockAlert(
+    email: string,
+    organizationName: string,
+    outletName: string,
+    alerts: Array<{
+      ingredientName: string;
+      currentStock: number;
+      threshold: number;
+      unit: string;
+    }>,
+  ): Promise<void>;
 }
 
 export const emailService: EmailService = {
@@ -140,6 +152,30 @@ export const emailService: EmailService = {
     const { subject, html } = trialSuspendedTemplate(organizationName);
 
     await emailQueue.add('send-trial-suspended', {
+      to: email,
+      subject,
+      html,
+    });
+  },
+
+  async sendLowStockAlert(
+    email: string,
+    organizationName: string,
+    outletName: string,
+    alerts: Array<{
+      ingredientName: string;
+      currentStock: number;
+      threshold: number;
+      unit: string;
+    }>,
+  ): Promise<void> {
+    if (isTest) {
+      return;
+    }
+
+    const { subject, html } = lowStockAlertTemplate(organizationName, outletName, alerts);
+
+    await emailQueue.add('send-low-stock-alert', {
       to: email,
       subject,
       html,
