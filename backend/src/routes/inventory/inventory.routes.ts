@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ingredientRouter } from '@/routes/inventory/ingredient.routes';
 import { restockRouter } from '@/routes/inventory/restock.routes';
 import { adjustmentRouter } from '@/routes/inventory/adjustment.routes';
+import { movementHistoryRouter } from '@/routes/inventory/movement-history.routes';
 import {
   listOutletStockController,
   getOutletStockController,
@@ -28,6 +29,7 @@ inventoryRouter.use(authMiddleware);
 inventoryRouter.use('/ingredients', ingredientRouter);
 inventoryRouter.use(restockRouter);
 inventoryRouter.use(adjustmentRouter);
+inventoryRouter.use(movementHistoryRouter);
 
 // List outlet stock
 inventoryRouter.get(
