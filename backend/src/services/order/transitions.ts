@@ -9,6 +9,7 @@ import {
 } from '@/lib/socket';
 import type { TableStatus } from '@prisma/client';
 import type { Prisma } from '@prisma/client';
+import { deductStockForOrder } from '@/services/inventory/stock-deduction.service';
 
 type TransactionClient = Prisma.TransactionClient;
 
@@ -204,6 +205,25 @@ export async function transitionOrderStatus(
           session: true,
         },
       });
+
+      // If confirming order (pending_confirmation -> placed), deduct stock
+      if (newStatus === 'placed' && currentStatus === 'pending_confirmation') {
+        const itemsToDeduct = updatedOrder.items.filter((item) => item.status !== 'cancelled');
+        if (itemsToDeduct.length > 0) {
+          await deductStockForOrder(
+            tx,
+            updatedOrder.id,
+            updatedOrder.outlet_id,
+            itemsToDeduct.map((item) => ({
+              id: item.id,
+              menu_item_id: item.menu_item_id,
+              quantity: item.quantity,
+              item_name: item.item_name,
+            })),
+            actor.userId,
+          );
+        }
+      }
 
       // If cancelling before preparing, restore stock
       if (newStatus === 'cancelled' && ['pending_confirmation', 'placed'].includes(currentStatus)) {
