@@ -163,8 +163,8 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | I-005 | Stock adjustment and wastage (Owner, Manager, Kitchen) | I-003 | ✅ |
 | I-006 | Stock movement history endpoint | I-004 | ✅ |
 | I-007 | Auto deduction on order confirm: transaction, row locks, movements | R-007, I-002 | ✅ |
-| I-008 | Auto restore on cancellation | I-007, R-010 | ⬜ |
-| I-009 | Auto-unavailable propagation and recovery on restock | I-007 | ⬜ |
+| I-008 | Auto restore on cancellation | I-007, R-010 | ✅ |
+| I-009 | Auto-unavailable propagation and recovery on restock | I-007 | ✅ |
 | I-010 | Low-stock alert job: notification, socket, email, de-duplicated | I-007, A-002 | ⬜ |
 | I-011 | Concurrency test: two orders race for the last ingredient | I-007 | ⬜ |
 

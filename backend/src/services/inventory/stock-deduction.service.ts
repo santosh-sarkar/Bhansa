@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import { getIO } from '@/lib/socket';
 import { emitToOutletManagers } from '@/lib/socket';
+import { updateAutoUnavailableForIngredient } from '@/services/inventory/auto-unavailable.service';
 
 type TransactionClient = Prisma.TransactionClient;
 
@@ -105,6 +106,10 @@ export async function deductStockForOrder(
 
         // Check for low stock (negative stock is definitely low)
         await checkAndEmitLowStock(tx, outletId, r.ingredient_id, newQuantity);
+
+        // Update auto_unavailable for menu items using this ingredient
+        await updateAutoUnavailableForIngredient(tx, outletId, r.ingredient_id, newQuantity);
+
         continue;
       }
 
@@ -152,6 +157,9 @@ export async function deductStockForOrder(
 
       // Check and emit low stock event if below threshold
       await checkAndEmitLowStock(tx, outletId, r.ingredient_id, newQuantity);
+
+      // Update auto_unavailable for menu items using this ingredient
+      await updateAutoUnavailableForIngredient(tx, outletId, r.ingredient_id, newQuantity);
     }
   }
 

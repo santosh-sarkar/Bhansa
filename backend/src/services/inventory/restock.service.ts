@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { AppError } from '@/errors/AppError';
 import { prisma } from '@/lib/prisma';
 import { getManageableOutletIds, type StaffActor } from '@/services/staff/access';
+import { checkAndUpdateAllAutoUnavailable } from '@/services/inventory/auto-unavailable.service';
 
 export interface RestockResult {
   outlet_id: string;
@@ -120,6 +121,9 @@ export async function recordRestock(
         performed_by: actor.id,
       },
     });
+
+    // Update auto_unavailable for all menu items at this outlet (recovery)
+    await checkAndUpdateAllAutoUnavailable(tx, outletId);
 
     return {
       movement,
