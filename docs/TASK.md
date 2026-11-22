@@ -159,8 +159,8 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | I-001 | Ingredient CRUD (org level) | A-009 | ✅ |
 | I-002 | Recipes: set menu item ingredients and quantities | I-001, M-002 | ✅ |
 | I-003 | Outlet stock list and low thresholds | I-001, A-010 | ✅ |
-| I-004 | Restock (Owner, Manager) with movement record | I-003 | ⬜ |
-| I-005 | Stock adjustment and wastage (Owner, Manager, Kitchen) | I-003 | ⬜ |
+| I-004 | Restock (Owner, Manager) with movement record | I-003 | ✅ |
+| I-005 | Stock adjustment and wastage (Owner, Manager, Kitchen) | I-003 | ✅ |
 | I-006 | Stock movement history endpoint | I-004 | ⬜ |
 | I-007 | Auto deduction on order confirm: transaction, row locks, movements | R-007, I-002 | ⬜ |
 | I-008 | Auto restore on cancellation | I-007, R-010 | ⬜ |
