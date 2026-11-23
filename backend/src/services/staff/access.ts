@@ -14,6 +14,7 @@ export interface StaffActor {
   organization_id: string | null;
   role: string;
   outletId: string | null;
+  is_super_admin: boolean;
 }
 
 /**

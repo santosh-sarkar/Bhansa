@@ -4,6 +4,27 @@ import { AppError } from '@/errors/AppError';
 import { prisma } from '@/lib/prisma';
 
 /**
+ * Requires Super Admin role.
+ */
+export function requireSuperAdmin(): RequestHandler {
+  return (req, _res, next) => {
+    try {
+      if (!req.user) {
+        throw new AppError('UNAUTHENTICATED', 'Authentication required', 401);
+      }
+
+      if (!req.user.is_super_admin) {
+        throw new AppError('FORBIDDEN', 'Super Admin access required', 403);
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
+/**
  * Requires a permission code at the organization level.
  * Checks if the user has either:
  * 1. An organization-wide assignment (outlet_id = null) with the permission (Owner)
