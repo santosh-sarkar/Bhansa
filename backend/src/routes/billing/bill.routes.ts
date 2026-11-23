@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 
 import { generateBillController, getBillController, listBillsController } from '@/controllers/billing/bill.controller';
+import { getBillInvoiceController } from '@/controllers/billing/invoice.controller';
 import { registry } from '@/docs/openapi';
 import { authMiddleware } from '@/middlewares/auth';
 import { requireOrgPermission } from '@/middlewares/orgPermission';
@@ -187,6 +188,25 @@ registry.registerPath({
   },
 });
 
+registry.registerPath({
+  method: 'get',
+  path: '/api/v1/bills/{id}/invoice',
+  tags: ['Billing'],
+  summary: 'Get printable invoice for a bill',
+  description: 'Returns HTML invoice that can be printed or saved as PDF. Requires payment.record permission.',
+  security: [{ cookieAuth: [] }],
+  request: { params: z.object({ id: z.string().uuid() }) },
+  responses: {
+    200: {
+      description: 'Printable HTML invoice',
+      content: { 'text/html': { schema: { type: 'string' } } },
+    },
+    401: errorResponse('Unauthenticated'),
+    403: errorResponse('Forbidden'),
+    404: errorResponse('Bill not found'),
+  },
+});
+
 // All routes require authentication
 billRouter.use(authMiddleware);
 
@@ -212,6 +232,14 @@ billRouter.get(
   requireOrgPermission('payment.record'),
   validate({ query: listBillsSchema.shape.query }),
   listBillsController,
+);
+
+// Get printable invoice - requires payment.record permission
+billRouter.get(
+  '/bills/:id/invoice',
+  requireOrgPermission('payment.record'),
+  validate({ params: billIdSchema.shape.params }),
+  getBillInvoiceController,
 );
 
 export { billRouter };
