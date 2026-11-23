@@ -5,6 +5,7 @@ import { initializeSocketServer } from '@/lib/socket';
 import { emailWorker } from '@/jobs/email.queue';
 import { trialExpiryWorker, scheduleTrialExpiryJob } from '@/jobs/trialExpiry.queue';
 import { lowStockAlertWorker, scheduleLowStockAlertJob } from '@/jobs/lowStockAlert.queue';
+import { esewaReconcileWorker, scheduleEsewaReconcileJob } from '@/jobs/esewaReconcile.queue';
 import { logger } from '@/lib/logger';
 
 async function start(): Promise<void> {
@@ -24,6 +25,11 @@ async function start(): Promise<void> {
   await lowStockAlertWorker.waitUntilReady();
   await scheduleLowStockAlertJob();
   logger.info('Low-stock alert worker ready and scheduled');
+
+  // Ensure eSewa reconcile worker is ready and scheduled
+  await esewaReconcileWorker.waitUntilReady();
+  await scheduleEsewaReconcileJob();
+  logger.info('eSewa reconcile worker ready and scheduled');
 
   const app = createApp();
 
@@ -45,9 +51,10 @@ async function start(): Promise<void> {
         await emailWorker.close();
         await trialExpiryWorker.close();
         await lowStockAlertWorker.close();
+        await esewaReconcileWorker.close();
         await disconnectRedis();
         logger.info(
-          'HTTP server closed, email worker closed, trial expiry worker closed, low-stock alert worker closed, Redis disconnected',
+          'HTTP server closed, email worker closed, trial expiry worker closed, low-stock alert worker closed, eSewa reconcile worker closed, Redis disconnected',
         );
         process.exit(0);
       })();

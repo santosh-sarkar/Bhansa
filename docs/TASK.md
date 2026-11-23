@@ -178,8 +178,8 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | PAY-002 | Cash payment, close session, free table, complete orders | PAY-001 | | ✅ |
 | PAY-003 | eSewa settings per outlet: product code and encrypted secret, test mode flag | A-010 | PD-011, PD-012 | ✅ |
 | PAY-004 | eSewa initiate: pending payment, `transaction_uuid`, HMAC-SHA256 signed form fields (re-check official docs first) | PAY-003, PAY-001 | | ✅ |
-| PAY-005 | eSewa verify: signature check, field match, status check API, idempotent success | PAY-004 | | ⬜ |
-| PAY-006 | eSewa reconcile job for pending payments | PAY-005, T-012 | | ⬜ |
+| PAY-005 | eSewa verify: signature check, field match, status check API, idempotent success | PAY-004 | | ✅ |
+| PAY-006 | eSewa reconcile job for pending payments | PAY-005, T-012 | | ✅ |
 | PAY-007 | Printable invoice | PAY-002 | PD-007 | ⬜ |
 | PAY-008 | Subscription payment reference (Owner) and Super Admin approval extending the period | S-003 | PD-013 | ⬜ |
 
