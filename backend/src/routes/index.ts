@@ -15,6 +15,7 @@ import { inventoryRouter } from '@/routes/inventory/inventory.routes';
 import { billRouter } from '@/routes/billing/bill.routes';
 import { paymentRouter } from '@/routes/payment/payment.routes';
 import { esewaSettingsRouter } from '@/routes/payment/esewa-settings.routes';
+import { esewaInitiateRouter } from '@/routes/payment/esewa-initiate.routes';
 
 export const apiRouter = Router();
 
@@ -33,3 +34,4 @@ apiRouter.use('/inventory', inventoryRouter);
 apiRouter.use(billRouter);
 apiRouter.use(paymentRouter);
 apiRouter.use(esewaSettingsRouter);
+apiRouter.use(esewaInitiateRouter);
