@@ -13,6 +13,7 @@ import { publicTableRouter } from '@/routes/public/public-table.routes';
 import { menuRouter } from '@/routes/menu/menu.routes';
 import { inventoryRouter } from '@/routes/inventory/inventory.routes';
 import { billRouter } from '@/routes/billing/bill.routes';
+import { paymentRouter } from '@/routes/payment/payment.routes';
 
 export const apiRouter = Router();
 
@@ -29,3 +30,4 @@ apiRouter.use('/orders', orderRouter);
 apiRouter.use('/menu', menuRouter);
 apiRouter.use('/inventory', inventoryRouter);
 apiRouter.use(billRouter);
+apiRouter.use(paymentRouter);
