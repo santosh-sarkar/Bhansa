@@ -174,7 +174,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 
 | ID | Task | Depends | Needs decision | Status |
 |---|---|---|---|---|
-| PAY-001 | Generate bill for a session (subtotal, VAT, service charge, discount with permission and audit) | R-012 | | ⬜ |
+| PAY-001 | Generate bill for a session (subtotal, VAT, service charge, discount with permission and audit) | R-012 | | ✅ |
 | PAY-002 | Cash payment, close session, free table, complete orders | PAY-001 | | ⬜ |
 | PAY-003 | eSewa settings per outlet: product code and encrypted secret, test mode flag | A-010 | PD-011, PD-012 | ⬜ |
 | PAY-004 | eSewa initiate: pending payment, `transaction_uuid`, HMAC-SHA256 signed form fields (re-check official docs first) | PAY-003, PAY-001 | | ⬜ |
