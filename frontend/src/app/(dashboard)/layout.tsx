@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import {
   Sidebar,
+  SidebarProvider,
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -63,8 +64,9 @@ export default function DashboardLayout({
   const currentOutletId = getCurrentOutletId()
 
   return (
-    <Sidebar>
-      <SidebarContent>
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarContent>
         {/* Mobile sidebar toggle */}
         <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
           <SheetTrigger>
@@ -243,5 +245,6 @@ export default function DashboardLayout({
         </main>
       </div>
     </Sidebar>
+      </SidebarProvider>
   )
 }
