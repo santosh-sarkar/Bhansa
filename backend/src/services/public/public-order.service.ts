@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { AppError } from '@/errors/AppError';
 import { prisma } from '@/lib/prisma';
 import { getEffectiveMenuForOutlet } from '@/services/menu/menu.service';
+import { createOutletNotification } from '@/services/notification/notification.service';
 
 export interface PublicOrderItemInput {
   menuItemId: string;
@@ -284,7 +285,21 @@ export async function placePublicOrder(
     { timeout: 15000 }, // 15 second timeout
   );
 
+  // Fetch table label for notification
+  const table = await prisma.diningTable.findUnique({
+    where: { id: session.table_id },
+    select: { label: true },
+  });
+
   const formatPrice = (value: Prisma.Decimal): string => value.toFixed(2);
+
+  // Notify outlet managers/owners of new pending order
+  await createOutletNotification(session.outlet_id, 'order.pending', {
+    order_id: order.id,
+    order_number: String(order.order_number),
+    table_label: table?.label ?? 'Unknown',
+    total: formatPrice(order.total),
+  });
 
   return {
     order: {

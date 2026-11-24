@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import { getIO } from '@/lib/socket';
 import { emitToOutletManagers } from '@/lib/socket';
+import { createOutletNotification } from '@/services/notification/notification.service';
 
 type TransactionClient = Prisma.TransactionClient;
 
@@ -114,6 +115,12 @@ export async function updateAutoUnavailableForIngredient(
     const currentAutoUnavailable = override?.auto_unavailable ?? false;
 
     if (shouldBeUnavailable !== currentAutoUnavailable) {
+      // Get menu item name for notification
+      const menuItem = await tx.menuItem.findUnique({
+        where: { id: item.menu_item_id },
+        select: { name: true },
+      });
+
       // Update or create override
       await tx.menuItemOutletOverride.upsert({
         where: {
@@ -143,6 +150,15 @@ export async function updateAutoUnavailableForIngredient(
           available: !shouldBeUnavailable,
           autoUnavailable: shouldBeUnavailable,
           reason: shouldBeUnavailable ? 'out_of_stock' : 'restocked',
+        });
+      }
+
+      // Notify outlet managers/owners of availability change
+      if (shouldBeUnavailable && menuItem) {
+        await createOutletNotification(outletId, 'item.unavailable', {
+          menu_item_id: item.menu_item_id,
+          item_name: menuItem.name,
+          reason: 'out_of_stock',
         });
       }
     }

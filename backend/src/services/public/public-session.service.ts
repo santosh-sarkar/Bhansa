@@ -7,6 +7,7 @@ import { generateSecureToken, hashToken } from '@/utils/token';
 import { GUEST_COOKIE_NAME, setGuestCookie, clearGuestCookie } from '@/utils/cookies';
 import { getIO } from '@/lib/socket';
 import { emitToOutletManagers } from '@/lib/socket';
+import { createOutletNotification } from '@/services/notification/notification.service';
 
 export interface PublicSessionStartInput {
   qrToken: string;
@@ -382,6 +383,12 @@ export async function requestBillPublic(req: Request): Promise<{ success: boolea
       tableLabel: session.table.label,
     });
   }
+
+  // Notify outlet managers/owners of bill request
+  await createOutletNotification(session.outlet_id, 'bill.requested', {
+    session_id: session.id,
+    table_label: session.table.label,
+  });
 
   return { success: true };
 }

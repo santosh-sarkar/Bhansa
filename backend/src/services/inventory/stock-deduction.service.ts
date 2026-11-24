@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { getIO } from '@/lib/socket';
 import { emitToOutletManagers } from '@/lib/socket';
 import { updateAutoUnavailableForIngredient } from '@/services/inventory/auto-unavailable.service';
+import { createOutletNotification } from '@/services/notification/notification.service';
 
 type TransactionClient = Prisma.TransactionClient;
 
@@ -207,5 +208,13 @@ async function checkAndEmitLowStock(
         outletId,
       });
     }
+
+    // Notify outlet managers/owners of low stock
+    await createOutletNotification(outletId, 'stock.low', {
+      ingredient_id: stock.ingredient.id,
+      ingredient_name: stock.ingredient.name,
+      current_stock: String(newQuantity),
+      threshold: String(threshold),
+    });
   }
 }
