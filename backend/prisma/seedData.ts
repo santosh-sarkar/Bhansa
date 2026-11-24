@@ -1,6 +1,16 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
+import argon2 from 'argon2';
 
 type SeedClient = PrismaClient | Prisma.TransactionClient;
+
+async function hashPassword(password: string): Promise<string> {
+  return argon2.hash(password, {
+    type: argon2.argon2id,
+    memoryCost: 19456,
+    timeCost: 2,
+    parallelism: 1,
+  });
+}
 
 export const ROLES = [
   { code: 'owner', name: 'Owner' },
@@ -158,4 +168,40 @@ export async function seedReferenceData(tx: SeedClient): Promise<void> {
       create: plan,
     });
   }
+}
+
+/**
+ * Seeds the Super Admin user from environment variables.
+ * Creates a user with is_super_admin=true and no organization.
+ */
+export async function seedSuperAdmin(tx: SeedClient): Promise<void> {
+  const email = process.env.SUPER_ADMIN_EMAIL;
+  const password = process.env.SUPER_ADMIN_PASSWORD;
+
+  if (!email || !password) {
+    console.log('[Seed] SUPER_ADMIN_EMAIL or SUPER_ADMIN_PASSWORD not set, skipping Super Admin seed.');
+    return;
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  const user = await tx.user.upsert({
+    where: { email },
+    update: {
+      password_hash: passwordHash,
+      is_super_admin: true,
+      is_active: true,
+      email_verified_at: new Date(),
+    },
+    create: {
+      email,
+      password_hash: passwordHash,
+      full_name: 'Super Admin',
+      is_super_admin: true,
+      is_active: true,
+      email_verified_at: new Date(),
+    },
+  });
+
+  console.log(`[Seed] Super Admin user created/updated: ${user.email}`);
 }

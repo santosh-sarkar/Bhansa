@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-import { PERMISSIONS, PLANS, ROLES, seedReferenceData } from './seedData';
+import { PERMISSIONS, PLANS, ROLES, seedReferenceData, seedSuperAdmin } from './seedData';
 
 const prisma = new PrismaClient();
 
@@ -8,6 +8,7 @@ async function seed(): Promise<void> {
   await prisma.$transaction(
     async (tx) => {
       await seedReferenceData(tx);
+      await seedSuperAdmin(tx);
     },
     { timeout: 30_000, maxWait: 10_000 },
   );
