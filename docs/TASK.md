@@ -205,7 +205,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | ID | Task | Depends | Status |
 |---|---|---|---|
 | SA-001 | Super Admin seed and guard middleware | T-007, A-005 | ✅ |
-| SA-002 | Organization list, filter, suspend and reactivate | SA-001 | ⬜ |
+| SA-002 | Organization list, filter, suspend and reactivate | SA-001 | ✅ |
 | SA-003 | Plan CRUD | SA-001 | ⬜ |
 | SA-004 | Subscription overrides, extend trial, change plan | SA-003, S-001 | ⬜ |
 | SA-005 | Leads list and mark handled | S-005, SA-001 | ⬜ |
