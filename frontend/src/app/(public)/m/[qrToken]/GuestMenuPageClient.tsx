@@ -14,11 +14,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Plus, Minus, ShoppingCart, X, Check, Loader2, Heart, HelpCircle, AlertCircle } from 'lucide-react'
+import { Plus, Minus, ShoppingCart, X, Check, Loader2, Heart, HelpCircle, AlertCircle, Truck, Package, CheckCircle, Clock, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { routes } from '@/config/routes'
 import { fetchGuestMenu, createGuestSession, placeGuestOrder, requestBill, type GuestMenuResponse, type GuestSessionResponse, type CreateOrderInput } from '@/features/menu/services/guest.api'
 import { formatCurrency } from '@/lib/utils'
+import { useGuestSocket } from '@/features/menu/hooks/useGuestSocket'
 
 interface CartItem {
   menuItemId: string
@@ -29,6 +30,18 @@ interface CartItem {
   options: Array<{ optionId: string; name: string; priceDelta: number; quantity: number }>
 }
 
+type OrderStatus = 'pending_confirmation' | 'placed' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled'
+
+const statusConfig: Record<OrderStatus, { label: string; icon: React.ReactNode; color: string; description: string }> = {
+  pending_confirmation: { label: 'Pending Confirmation', icon: <Clock className="h-4 w-4" />, color: 'text-yellow-600 bg-yellow-50', description: 'Waiting for staff to confirm' },
+  placed: { label: 'Order Placed', icon: <Package className="h-4 w-4" />, color: 'text-blue-600 bg-blue-50', description: 'Order received, waiting for kitchen' },
+  preparing: { label: 'Preparing', icon: <RotateCcw className="h-4 w-4 animate-spin" />, color: 'text-orange-600 bg-orange-50', description: 'Kitchen is preparing your order' },
+  ready: { label: 'Ready for Pickup', icon: <CheckCircle className="h-4 w-4" />, color: 'text-green-600 bg-green-50', description: 'Order is ready, waiting for server' },
+  served: { label: 'Served', icon: <Truck className="h-4 w-4" />, color: 'text-purple-600 bg-purple-50', description: 'Order has been served to your table' },
+  completed: { label: 'Completed', icon: <Check className="h-4 w-4" />, color: 'text-gray-600 bg-gray-50', description: 'Order completed' },
+  cancelled: { label: 'Cancelled', icon: <X className="h-4 w-4" />, color: 'text-red-600 bg-red-50', description: 'Order was cancelled' },
+}
+
 export function GuestMenuPageClient({ initialMenu, qrToken }: { initialMenu: GuestMenuResponse; qrToken: string }) {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState(initialMenu.categories[0]?.id ?? '')
@@ -37,6 +50,7 @@ export function GuestMenuPageClient({ initialMenu, qrToken }: { initialMenu: Gue
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showOrderTracking, setShowOrderTracking] = useState(false)
 
   // Initialize session
   const { data: session, isLoading: sessionLoading } = useQuery<GuestSessionResponse>({
@@ -44,6 +58,9 @@ export function GuestMenuPageClient({ initialMenu, qrToken }: { initialMenu: Gue
     queryFn: () => createGuestSession(qrToken),
     staleTime: Infinity,
   })
+
+  // Real-time socket connection for order updates
+  useGuestSocket(session?.id)
 
   // Refetch menu for real-time updates
   const { data: menuData } = useQuery({
@@ -61,6 +78,7 @@ export function GuestMenuPageClient({ initialMenu, qrToken }: { initialMenu: Gue
       setCart([])
       setOrderSuccess(true)
       setIsPlacingOrder(false)
+      setShowOrderTracking(true)
       queryClient.invalidateQueries({ queryKey: ['guest', 'session', qrToken] })
       setTimeout(() => setOrderSuccess(false), 3000)
     },
@@ -155,6 +173,13 @@ export function GuestMenuPageClient({ initialMenu, qrToken }: { initialMenu: Gue
     )
   }
 
+  const getOrderStatusConfig = (status: string) => statusConfig[status as OrderStatus] ?? { 
+    label: status, 
+    icon: <HelpCircle className="h-4 w-4" />, 
+    color: 'text-muted-foreground bg-muted', 
+    description: '' 
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -176,6 +201,12 @@ export function GuestMenuPageClient({ initialMenu, qrToken }: { initialMenu: Gue
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {cartCount > 99 ? '99+' : cartCount}
                 </span>
+              </Button>
+            )}
+            {session?.orders.length && session.orders.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setShowOrderTracking(true)}>
+                <Package className="h-4 w-4 mr-1" />
+                Orders ({session.orders.length})
               </Button>
             )}
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setCartOpen(true)}>
@@ -239,6 +270,71 @@ export function GuestMenuPageClient({ initialMenu, qrToken }: { initialMenu: Gue
           )}
         </div>
       </main>
+
+      {/* Order Tracking Sheet */}
+      {session?.orders.length && session.orders.length > 0 && (
+        <Sheet open={showOrderTracking} onOpenChange={setShowOrderTracking}>
+          <SheetContent side="right" className="w-full sm:max-w-md">
+            <SheetHeader>
+              <SheetTitle>Your Orders</SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="flex-1">
+              <div className="space-y-4 py-4">
+                {session.orders.map(order => {
+                  const config = getOrderStatusConfig(order.status)
+                  return (
+                    <Card key={order.id} className="border-border">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className={`font-medium ${config.color} px-2 py-1 rounded text-xs`}>
+                                {config.icon}
+                                {config.label}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">Order #{order.orderNumber}</p>
+                          </div>
+                          <p className="font-mono text-primary">{formatCurrency(order.totalAmount)}</p>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-2">
+                          {order.items.map(item => (
+                            <div key={item.id} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                              <div>
+                                <p className="font-medium">{item.menuItemName}</p>
+                                {item.options.length > 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {item.options.map(o => `${o.name} (${o.kind === 'variant' ? '' : '+'})`).join(', ')}
+                                  </p>
+                                )}
+                              </div>
+                              <span>x{item.quantity} · {formatCurrency(item.totalPrice)}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="pt-2 border-t flex justify-between text-sm">
+                          <span>Order Total</span>
+                          <span className="font-medium">{formatCurrency(order.totalAmount)}</span>
+                        </div>
+                        {config.description && (
+                          <p className="text-xs text-muted-foreground">{config.description}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            </ScrollArea>
+            <SheetFooter className="border-t p-4">
+              <Button variant="outline" className="w-full" onClick={() => setShowOrderTracking(false)}>
+                Continue Browsing
+              </Button>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+      )}
 
       {/* Cart Sheet */}
       <Sheet open={cartOpen} onOpenChange={setCartOpen}>
