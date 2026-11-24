@@ -22,6 +22,7 @@ import { analyticsRouter } from '@/routes/analytics/analytics.routes';
 import { inventoryReportRouter } from '@/routes/analytics/inventory-report.routes';
 import { consolidatedRouter } from '@/routes/analytics/consolidated.routes';
 import { superAdminOrgRouter } from '@/routes/super-admin/organization.routes';
+import { superAdminPlanRouter } from '@/routes/super-admin/plan.routes';
 
 export const apiRouter = Router();
 
@@ -47,3 +48,4 @@ apiRouter.use(analyticsRouter);
 apiRouter.use(inventoryReportRouter);
 apiRouter.use(consolidatedRouter);
 apiRouter.use(superAdminOrgRouter);
+apiRouter.use(superAdminPlanRouter);
