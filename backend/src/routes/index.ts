@@ -19,6 +19,7 @@ import { esewaInitiateRouter } from '@/routes/payment/esewa-initiate.routes';
 import { subscriptionPaymentRouter } from '@/routes/plans/subscription-payment.routes';
 import { notificationRouter } from '@/routes/notification/notification.routes';
 import { analyticsRouter } from '@/routes/analytics/analytics.routes';
+import { inventoryReportRouter } from '@/routes/analytics/inventory-report.routes';
 
 export const apiRouter = Router();
 
@@ -41,3 +42,4 @@ apiRouter.use(esewaInitiateRouter);
 apiRouter.use(subscriptionPaymentRouter);
 apiRouter.use(notificationRouter);
 apiRouter.use(analyticsRouter);
+apiRouter.use(inventoryReportRouter);
