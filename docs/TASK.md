@@ -191,10 +191,10 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 |---|---|---|---|
 | N-001 | Notification model, list, mark read, read-all | A-010 | ✅ |
 | N-002 | Create notifications for key events (pending order, bill request, low stock, item unavailable) | N-001, R-013 | ✅ |
-| AN-001 | Summary: revenue, orders, average order value | PAY-002 | ⬜ |
-| AN-002 | Revenue by day | AN-001 | ⬜ |
-| AN-003 | Top items | AN-001 | ⬜ |
-| AN-004 | Peak hours (outlet timezone) | AN-001 | ⬜ |
+| AN-001 | Summary: revenue, orders, average order value | PAY-002 | ✅ |
+| AN-002 | Revenue by day | AN-001 | ✅ |
+| AN-003 | Top items | AN-001 | ✅ |
+| AN-004 | Peak hours (outlet timezone) | AN-001 | ✅ |
 | AN-005 | Inventory report (stock, wastage, usage) | I-006 | ⬜ |
 | AN-006 | Consolidated Owner analytics across outlets | AN-001, O-003 | ⬜ |
 
