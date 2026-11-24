@@ -17,6 +17,7 @@ import { paymentRouter } from '@/routes/payment/payment.routes';
 import { esewaSettingsRouter } from '@/routes/payment/esewa-settings.routes';
 import { esewaInitiateRouter } from '@/routes/payment/esewa-initiate.routes';
 import { subscriptionPaymentRouter } from '@/routes/plans/subscription-payment.routes';
+import { notificationRouter } from '@/routes/notification/notification.routes';
 
 export const apiRouter = Router();
 
@@ -37,3 +38,4 @@ apiRouter.use(paymentRouter);
 apiRouter.use(esewaSettingsRouter);
 apiRouter.use(esewaInitiateRouter);
 apiRouter.use(subscriptionPaymentRouter);
+apiRouter.use(notificationRouter);
