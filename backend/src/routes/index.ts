@@ -20,6 +20,7 @@ import { subscriptionPaymentRouter } from '@/routes/plans/subscription-payment.r
 import { notificationRouter } from '@/routes/notification/notification.routes';
 import { analyticsRouter } from '@/routes/analytics/analytics.routes';
 import { inventoryReportRouter } from '@/routes/analytics/inventory-report.routes';
+import { consolidatedRouter } from '@/routes/analytics/consolidated.routes';
 
 export const apiRouter = Router();
 
@@ -43,3 +44,4 @@ apiRouter.use(subscriptionPaymentRouter);
 apiRouter.use(notificationRouter);
 apiRouter.use(analyticsRouter);
 apiRouter.use(inventoryReportRouter);
+apiRouter.use(consolidatedRouter);

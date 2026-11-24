@@ -196,7 +196,7 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 | AN-003 | Top items | AN-001 | ✅ |
 | AN-004 | Peak hours (outlet timezone) | AN-001 | ✅ |
 | AN-005 | Inventory report (stock, wastage, usage) | I-006 | ✅ |
-| AN-006 | Consolidated Owner analytics across outlets | AN-001, O-003 | ⬜ |
+| AN-006 | Consolidated Owner analytics across outlets | AN-001, O-003 | ✅ |
 
 ---
 
