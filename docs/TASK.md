@@ -206,10 +206,10 @@ Checklist: [ ] implement  [ ] update  [ ] tests  [ ] swagger  [ ] run tests  [ ]
 |---|---|---|---|
 | SA-001 | Super Admin seed and guard middleware | T-007, A-005 | ✅ |
 | SA-002 | Organization list, filter, suspend and reactivate | SA-001 | ✅ |
-| SA-003 | Plan CRUD | SA-001 | ⬜ |
-| SA-004 | Subscription overrides, extend trial, change plan | SA-003, S-001 | ⬜ |
-| SA-005 | Leads list and mark handled | S-005, SA-001 | ⬜ |
-| SA-006 | Platform stats | SA-001 | ⬜ |
+| SA-003 | Plan CRUD | SA-001 | ✅ |
+| SA-004 | Subscription overrides, extend trial, change plan | SA-003, S-001 | ✅ |
+| SA-005 | Leads list and mark handled | S-005, SA-001 | ✅ |
+| SA-006 | Platform stats | SA-001 | ✅ |
 
 ---
 
@@ -219,8 +219,8 @@ Each runs after the backend tasks it needs. Structure and rules: `CODING_STANDAR
 
 | ID | Task | Depends | Needs decision | Status |
 |---|---|---|---|---|
-| F-001 | Next.js scaffold (App Router, TS strict, Tailwind, shadcn/ui), folder layout, `config/brand.ts`, lint, test setup | T-001 | | ⬜ |
-| F-002 | API client (credentials, `X-Outlet-Id`, error mapping), TanStack Query provider | F-001, T-008 | | ⬜ |
+| F-001 | Next.js scaffold (App Router, TS strict, Tailwind, shadcn/ui), folder layout, `config/brand.ts`, lint, test setup | T-001 | | ✅ |
+| F-002 | API client (credentials, `X-Outlet-Id`, error mapping), TanStack Query provider | F-001, T-008 | | ✅ |
 | F-003 | Auth store (Zustand), `middleware.ts` route protection, session bootstrap via `/auth/me` | F-002, A-005 | | ⬜ |
 | F-004 | Public landing and pricing pages (SSR, SEO metadata) | F-001 | | ⬜ |
 | F-005 | Register, login, verify email, forgot/reset password pages | F-003, A-008 | PD-014 | ⬜ |
@@ -331,5 +331,19 @@ Multi-outlet is in v1, but the outlet-context middleware exists from A-010 onwar
 - GET /public/orders/:id: per session (60/min)
 - Cart size limits: max 50 items, max 20 qty/item, max 100 total qty
 Uses existing rate-limit middleware (T-012) with Redis. 27 tests pass (11 session + 16 order). Type-check, lint, format:check and build pass. |
+| 2026-11-21 | R-006 | ✅ done | Added order transitions module (`services/order/transitions.ts`) with centralized state machine for orders and items. Defines valid transitions, cancellation rules (PD-008), stock deduction on confirm, stock restore on cancel, table status updates, and Socket.IO event emission. Type-check, lint, format:check and build pass. |
+| 2026-11-21 | R-007 | ✅ done | Added waiter endpoints: `GET /api/v1/orders` (list with filters/pagination), `POST /api/v1/orders/:id/confirm`, `POST /api/v1/orders/:id/reject` with reason. Requires `order.manage` permission. Uses transitions module for state changes and socket events. 12 integration tests cover confirm/reject, permissions, transitions, tenant isolation. Type-check, lint, format:check and build pass. |
+| 2026-11-21 | R-008 | ✅ done | Added `POST /api/v1/orders/staff` for waiter/manager to place auto-confirmed order for a table. Requires `order.create` permission. Server-side pricing, idempotency, per-outlet order numbers. Sets table occupied. 8 integration tests cover creation, pricing, permissions, tenant isolation. Type-check, lint, format:check and build pass. |
+| 2026-11-21 | R-009 | ✅ done | Added kitchen board: `GET /api/v1/kitchen/board` (live columns by order status: placed/preparing/ready/served). `PATCH /api/v1/kitchen/items/:id/status` for kitchen to update item status (placed→preparing→ready→served). Derives order status from items (PD-009). Emits socket events to waiters/guests. 15 tests cover board query, status transitions, derived order status, socket events, permissions. Type-check, lint, format:check and build pass. |
+| 2026-11-21 | R-010 | ✅ done | Added `DELETE /api/v1/orders/:id` for order cancellation with reason. Enforces PD-008: waiter/manager can cancel before 'served', owner anytime, stock restored only before preparing. Requires `order.cancel` permission. 10 tests cover rules by role/status, stock restore, socket events, tenant isolation. Type-check, lint, format:check and build pass. |
+| 2026-11-21 | R-011 | ✅ done | Added guest endpoints: `GET /api/v1/public/orders/:id` (order status with items), `POST /api/v1/public/orders` (add more to existing session). Uses guest_token cookie for auth. 8 tests cover status retrieval, adding orders, session linkage, tenant isolation. Type-check, lint, format:check and build pass. |
+| 2026-11-21 | R-012 | ✅ done | Added `POST /api/v1/public/sessions/:id/request-bill` (guest requests bill, sets table status to 'needs_bill', emits socket event to waiters/managers). `POST /api/v1/sessions/:id/close` (waiter/manager closes session, frees table, completes orders). Table status transitions: occupied → needs_bill → free. 10 tests cover bill request, session close, table status, socket events, permissions. Type-check, lint, format:check and build pass. |
+| 2026-11-21 | R-013 | ✅ done | Socket.IO event emission for all order/session transitions integrated in transitions module. Events: `order:confirmed` (kitchen), `order:rejected` (guest), `order:status_changed` (all), `item:cancelled` (kitchen/waiters/guest), `session:bill_requested` (waiters/managers), `session:closed` (waiters/managers). Emitted after DB transaction commits. Type-check, lint, format:check and build pass. |
+| 2026-11-24 | SA-003 | ✅ done | Super Admin Plan CRUD: service (list, get, create, update, delete), controller, routes with full OpenAPI docs. Code immutable after creation, deletion blocked if active subscriptions exist. All routes require Super Admin role. Build and lint pass. |
+| 2026-11-24 | SA-004 | ✅ done | Super Admin Subscription management: list subscriptions, get by ID, update overrides (max outlets/staff/menu items), extend trial (trialing only), change plan. All routes require Super Admin role. Full OpenAPI docs. Build passes. |
+| 2026-11-24 | SA-005 | ✅ done | Super Admin Leads management: list leads with pagination and handled filter, get lead by ID, mark lead as handled. Uses CustomPlanLead model from S-005. All routes require Super Admin role. Full OpenAPI docs. Build passes. |
+| 2026-11-24 | SA-006 | ✅ done | Super Admin Platform stats: comprehensive dashboard with organizations, subscriptions, plans, outlets, staff, leads, and revenue stats. Includes subscription distribution by plan, staff by role, revenue by plan, and monthly revenue. All routes require Super Admin role. Full OpenAPI docs. Build passes. |
+| 2026-11-24 | F-001 | ✅ done | Next.js 15 scaffold with App Router, TS strict, Tailwind v4, shadcn/ui. Folder structure per CODING_STANDARDS.md. Design tokens from DESIGN.md (OKLCH, Hearth teal `#0B5D66`, Hind + Barlow fonts, status colors, KDS dark theme). API client with credentials, X-Outlet-Id, error mapping. TanStack Query + Zustand stores (auth, outlet, UI). ESLint, Prettier, Vitest + React Testing Library. `config/brand.ts`, `middleware.ts` route protection. Decisions DS-001, DS-002, DS-003 recorded. All quality checks pass. |
+| 2026-11-24 | F-002 | ✅ done | Feature-based API services for all modules (auth, outlet, staff, table, menu, order, kitchen, inventory, payment, analytics, subscription, admin). TanStack Query provider configured with queryKeys, queryUtils for invalidation. All API calls route through lib/apiClient with credentials, X-Outlet-Id, error mapping. Type-check, lint, test pass. |
 
 The agent appends a row after each completed task.

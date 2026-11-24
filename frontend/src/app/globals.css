@@ -1,0 +1,177 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius: var(--radius);
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
+
+  /* order status: text and fill */
+  --color-status-awaiting: var(--status-awaiting);
+  --color-status-awaiting-bg: var(--status-awaiting-bg);
+  --color-status-new: var(--status-new);
+  --color-status-new-bg: var(--status-new-bg);
+  --color-status-preparing: var(--status-preparing);
+  --color-status-preparing-bg: var(--status-preparing-bg);
+  --color-status-ready: var(--status-ready);
+  --color-status-ready-bg: var(--status-ready-bg);
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-bg: var(--status-neutral-bg);
+  --color-status-cancelled: var(--status-cancelled);
+  --color-status-cancelled-bg: var(--status-cancelled-bg);
+
+  /* payment brand (official eSewa colors) */
+  --color-esewa: var(--esewa);
+  --color-esewa-foreground: var(--esewa-foreground);
+
+  /* charts */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* kitchen board (always dark) */
+  --color-kds-background: var(--kds-background);
+  --color-kds-surface: var(--kds-surface);
+  --color-kds-border: var(--kds-border);
+  --color-kds-foreground: var(--kds-foreground);
+  --color-kds-muted: var(--kds-muted);
+}
+
+:root {
+  --background: oklch(0.976 0.002 248);
+  --foreground: oklch(0.243 0.024 249);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.243 0.024 249);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.243 0.024 249);
+  --primary: oklch(0.438 0.072 207);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.946 0.006 223);
+  --secondary-foreground: oklch(0.243 0.024 249);
+  --muted: oklch(0.956 0.004 236);
+  --muted-foreground: oklch(0.507 0.021 240);
+  --accent: oklch(0.948 0.015 202);
+  --accent-foreground: oklch(0.376 0.060 208);
+  --destructive: oklch(0.500 0.182 30);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.910 0.008 242);
+  --input: oklch(0.624 0.021 243);
+  --ring: oklch(0.438 0.072 207);
+  --radius: 0.75rem;
+
+  /* order status: text and fill */
+  --status-awaiting: oklch(0.430 0.151 312);
+  --status-awaiting-bg: oklch(0.940 0.024 313);
+  --status-new: oklch(0.485 0.134 254);
+  --status-new-bg: oklch(0.945 0.018 251);
+  --status-preparing: oklch(0.503 0.127 53);
+  --status-preparing-bg: oklch(0.947 0.037 77);
+  --status-ready: oklch(0.458 0.106 153);
+  --status-ready-bg: oklch(0.940 0.027 157);
+  --status-neutral: oklch(0.444 0.023 248);
+  --status-neutral-bg: oklch(0.944 0.006 240);
+  --status-cancelled: oklch(0.471 0.166 29);
+  --status-cancelled-bg: oklch(0.937 0.026 27);
+
+  /* payment brand (official eSewa colors) */
+  --esewa: oklch(0.734 0.200 145);
+  --esewa-foreground: oklch(0.178 0 0);
+
+  /* charts */
+  --chart-1: oklch(0.438 0.072 207);
+  --chart-2: oklch(0.753 0.158 77);
+  --chart-3: oklch(0.532 0.131 244);
+  --chart-4: oklch(0.679 0.118 346);
+  --chart-5: oklch(0.620 0.130 165);
+
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.243 0.024 249);
+  --sidebar-primary: oklch(0.438 0.072 207);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.948 0.015 202);
+  --sidebar-accent-foreground: oklch(0.376 0.060 208);
+  --sidebar-border: oklch(0.910 0.008 242);
+  --sidebar-ring: oklch(0.438 0.072 207);
+}
+
+.dark {
+  --background: oklch(0.191 0.012 237);
+  --foreground: oklch(0.965 0.004 236);
+  --card: oklch(0.235 0.018 245);
+  --card-foreground: oklch(0.965 0.004 236);
+  --popover: oklch(0.235 0.018 245);
+  --popover-foreground: oklch(0.965 0.004 236);
+  --primary: oklch(0.729 0.098 205);
+  --primary-foreground: oklch(0.259 0.039 206);
+  --secondary: oklch(0.334 0.027 247);
+  --secondary-foreground: oklch(0.965 0.004 236);
+  --muted: oklch(0.285 0.02 246);
+  --muted-foreground: oklch(0.722 0.022 244);
+  --accent: oklch(0.31 0.03 215);
+  --accent-foreground: oklch(0.92 0.03 205);
+  --destructive: oklch(0.732 0.164 27);
+  --destructive-foreground: oklch(0.2 0.02 27);
+  --border: oklch(0.334 0.027 247);
+  --input: oklch(0.55 0.025 245);
+  --ring: oklch(0.729 0.098 205);
+
+  /* status on dark: text colors; fills are 15% mixes of the text color */
+  --status-awaiting: oklch(0.767 0.107 311);
+  --status-new: oklch(0.756 0.107 252);
+  --status-preparing: oklch(0.807 0.140 74);
+  --status-ready: oklch(0.760 0.140 156);
+  --status-neutral: oklch(0.722 0.022 244);
+  --status-cancelled: oklch(0.732 0.164 27);
+
+  /* kitchen board (always dark) */
+  --kds-background: oklch(0.192 0.016 245);
+  --kds-surface: oklch(0.242 0.022 246);
+  --kds-border: oklch(0.334 0.027 247);
+  --kds-foreground: oklch(0.965 0.004 236);
+  --kds-muted: oklch(0.722 0.022 244);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
