@@ -41,6 +41,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Plus, Edit, Trash2, MoreHorizontal, Loader2, Search, ChevronUp, ChevronDown, GripVertical, Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/authStore'
+import { MenuItemOutletOverridesDialog } from '@/features/menu/components/menu-item-outlet-overrides-dialog'
 import {
   fetchCategories,
   createCategory,
@@ -985,19 +986,13 @@ export default function MenuPage() {
         <OptionDialog menuItemId={creatingOptionItemId} onSuccess={() => { queryClient.invalidateQueries({ queryKey: ['menu', 'items'] }); setCreatingOptionItemId(null) }} onClose={() => setCreatingOptionItemId(null)} />
       )}
       {managingOverridesItem && (
-        <div>
-          <h2 className="text-xl font-bold mb-4">Outlet Overrides for {managingOverridesItem.name}</h2>
-          <OverridesTable
-            overrides={managingOverridesItem.outletOverrides}
-            isLoading={false}
-            menuItemId={managingOverridesItem.id}
-            outlets={outlets}
-          />
-          <Button className="mt-4" onClick={() => alert('Override management coming soon')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Override
-          </Button>
-        </div>
+        <MenuItemOutletOverridesDialog
+          menuItemId={managingOverridesItem.id}
+          menuItemName={managingOverridesItem.name}
+          open={true}
+          onOpenChange={open => !open && setManagingOverridesItem(null)}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['menu', 'items'] })}
+        />
       )}
 
       {/* Event listeners for table actions */}

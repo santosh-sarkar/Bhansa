@@ -27,6 +27,7 @@ export const routes = {
   inventory: '/dashboard/inventory',
   billing: '/dashboard/billing',
   analytics: '/dashboard/analytics',
+  analyticsConsolidated: '/dashboard/analytics/consolidated',
   subscription: '/dashboard/subscription',
   notifications: '/dashboard/notifications',
   settings: '/dashboard/settings',

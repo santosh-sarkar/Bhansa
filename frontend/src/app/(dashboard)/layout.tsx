@@ -19,6 +19,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Bell, Menu, X, LogOut, User, Settings, ChevronRight, Building2, Utensils, Users, BarChart3, CreditCard, Package, ClipboardList, LayoutDashboard, Shield, ChefHat } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { routes } from '@/config/routes'
+import { OutletSwitcher } from '@/features/outlet/components/outlet-switcher'
+import { NotificationDropdown } from '@/features/notification/components/notification-dropdown'
+import { useNotificationSocket } from '@/features/notification/hooks/useNotificationSocket'
 
 const navigation = [
   { name: 'Dashboard', href: routes.dashboard, icon: LayoutDashboard, permission: null },
@@ -30,6 +33,7 @@ const navigation = [
   { name: 'Inventory', href: routes.inventory, icon: Package, permission: 'inventory.manage' },
   { name: 'Billing', href: routes.billing, icon: CreditCard, permission: 'payment.record' },
   { name: 'Analytics', href: routes.analytics, icon: BarChart3, permission: 'analytics.view' },
+  { name: 'Consolidated', href: routes.analyticsConsolidated, icon: BarChart3, permission: null, role: 'owner' },
 ]
 
 function SidebarNavItem({ item, pathname }: { item: typeof navigation[0]; pathname: string }) {
@@ -53,15 +57,18 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const { user, hasPermission, logout, getCurrentOutletId } = useAuthStore()
+  const { user, hasPermission, hasRole, logout, getCurrentOutletId } = useAuthStore()
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const currentOutletId = getCurrentOutletId()
+
+  // Initialize notification socket for real-time updates
+  useNotificationSocket()
 
   const filteredNavigation = navigation.filter((item) => {
+    if (item.role && !hasRole(item.role)) return false
     if (!item.permission) return true
     return hasPermission(item.permission)
   })
-
-  const currentOutletId = getCurrentOutletId()
 
   return (
     <SidebarProvider>
@@ -159,47 +166,10 @@ export default function DashboardLayout({
           <div className="flex-1" />
 
           {/* Outlet switcher */}
-          {currentOutletId && (
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button variant="outline" size="sm" className="gap-2 hidden sm:flex">
-                  <Building2 className="h-4 w-4" aria-hidden="true" />
-                  <span>Outlet {currentOutletId.slice(0, 8)}</span>
-                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Switch Outlet</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-sm text-muted-foreground">
-                  Current: {currentOutletId.slice(0, 8)}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <OutletSwitcher />
 
           {/* Notification bell */}
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" aria-hidden="true" />
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium">
-                  3
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-sm text-muted-foreground">
-                No new notifications
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => window.location.href = routes.notifications} className="text-center text-primary cursor-pointer">
-                View all notifications
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NotificationDropdown />
 
           {/* User menu */}
           <DropdownMenu>

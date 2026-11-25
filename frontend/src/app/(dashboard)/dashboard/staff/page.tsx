@@ -45,15 +45,17 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, User, Loader2, MoreHorizontal, Trash2, Edit, AlertTriangle } from 'lucide-react'
+import { Plus, User, Loader2, MoreHorizontal, Trash2, Edit, AlertTriangle, Building2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { routes } from '@/config/routes'
+import { StaffAssignmentsDialog } from '@/features/staff/components/staff-assignments-dialog'
 import {
   fetchStaff,
   fetchInvitations,
   createInvitation,
   revokeInvitation,
   deactivateStaff,
+  updateStaffAssignments,
   type StaffMember,
   type Invitation,
   type CreateInvitationInput,
@@ -82,7 +84,11 @@ const statusColors: Record<string, string> = {
   inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
 }
 
-function StaffTable({ staff, isLoading }: { staff: StaffMember[]; isLoading: boolean }) {
+function StaffTable({
+  staff,
+  isLoading,
+  onAssignments,
+}: { staff: StaffMember[]; isLoading: boolean; onAssignments: (member: StaffMember) => void }) {
   if (isLoading) {
     return (
       <Table>
@@ -182,6 +188,10 @@ function StaffTable({ staff, isLoading }: { staff: StaffMember[]; isLoading: boo
                   <DropdownMenuItem onSelect={() => window.location.href = `${routes.staff}/${member.id}`}>
                     <Edit className="h-4 w-4 mr-2" />
                     View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => onAssignments(member)}>
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Assignments
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -415,6 +425,16 @@ export default function StaffPage() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const [assignmentsStaff, setAssignmentsStaff] = useState<StaffMember | null>(null)
+
+  const assignmentsMutation = useMutation({
+    mutationFn: ({ staffId, outletIds }: { staffId: string; outletIds: string[] }) =>
+      updateStaffAssignments(staffId, { outletIds }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff', 'list'] })
+      setAssignmentsStaff(null)
+    },
+  })
 
   const { data: staffData, isLoading: staffLoading } = useQuery({
     queryKey: ['staff', 'list', search, statusFilter],
@@ -463,6 +483,10 @@ export default function StaffPage() {
     s.email.toLowerCase().includes(search.toLowerCase())
   ) ?? []
 
+  const handleAssignments = (member: StaffMember) => {
+    setAssignmentsStaff(member)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -498,7 +522,11 @@ export default function StaffPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <StaffTable staff={filteredStaff} isLoading={staffLoading} />
+          <StaffTable
+            staff={filteredStaff}
+            isLoading={staffLoading}
+            onAssignments={handleAssignments}
+          />
         </CardContent>
       </Card>
 
@@ -519,6 +547,14 @@ export default function StaffPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Staff Assignments Dialog */}
+      <StaffAssignmentsDialog
+        staff={assignmentsStaff!}
+        open={!!assignmentsStaff}
+        onOpenChange={open => !open && setAssignmentsStaff(null)}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['staff', 'list'] })}
+      />
     </div>
   )
 }

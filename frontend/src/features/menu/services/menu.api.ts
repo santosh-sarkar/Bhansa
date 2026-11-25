@@ -251,8 +251,20 @@ export async function fetchOutletOverrides(menuItemId: string): Promise<MenuItem
   return result.data!
 }
 
+function toSnakeCase(obj: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {}
+  for (const [key, value] of Object.entries(obj)) {
+    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+    result[snakeKey] = value
+  }
+  return result
+}
+
 export async function updateOutletOverrides(menuItemId: string, data: BulkOutletOverridesInput): Promise<MenuItemOutletOverride[]> {
-  const result = await api.put<MenuItemOutletOverride[]>(`/menu/items/${menuItemId}/outlet-overrides`, data)
+  const snakeData = {
+    overrides: data.overrides.map(o => toSnakeCase(o as Record<string, any>))
+  }
+  const result = await api.put<MenuItemOutletOverride[]>(`/menu/items/${menuItemId}/outlet-overrides`, snakeData)
   if (result.error) throw new Error(result.error.message)
   return result.data!
 }

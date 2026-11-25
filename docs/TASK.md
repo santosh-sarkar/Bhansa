@@ -221,25 +221,25 @@ Each runs after the backend tasks it needs. Structure and rules: `CODING_STANDAR
 |---|---|---|---|---|
 | F-001 | Next.js scaffold (App Router, TS strict, Tailwind, shadcn/ui), folder layout, `config/brand.ts`, lint, test setup | T-001 | | ✅ |
 | F-002 | API client (credentials, `X-Outlet-Id`, error mapping), TanStack Query provider | F-001, T-008 | | ✅ |
-| F-003 | Auth store (Zustand), `middleware.ts` route protection, session bootstrap via `/auth/me` | F-002, A-005 | | ⬜ |
-| F-004 | Public landing and pricing pages (SSR, SEO metadata) | F-001 | | ⬜ |
-| F-005 | Register, login, verify email, forgot/reset password pages | F-003, A-008 | PD-014 | ⬜ |
-| F-006 | Dashboard layout: permission-based sidebar, header, notification bell placeholder | F-003, A-009 | | ⬜ |
-| F-007 | Staff pages: list, invite, role change, deactivate | F-006, A-015 | | ⬜ |
-| F-008 | Outlet settings page and tables page with QR view and print | F-006, TB-003, O-002 | | ⬜ |
-| F-009 | Menu management: categories, items, options, image upload | F-006, M-004 | | ⬜ |
-| F-010 | Guest QR menu page (SSR, mobile first) | F-001, R-002 | | ⬜ |
-| F-011 | Guest cart, place order, live tracking, add more, request bill | F-010, R-013 | | ⬜ |
-| F-012 | Waiter screen: tables overview, pending confirmations, place order, serve | F-006, R-013 | | ⬜ |
-| F-013 | Kitchen board: live columns, item status, out-of-stock toggle | F-006, R-013 | | ⬜ |
+| F-003 | Auth store (Zustand), `middleware.ts` route protection, session bootstrap via `/auth/me` | F-002, A-005 | | ✅ |
+| F-004 | Public landing and pricing pages (SSR, SEO metadata) | F-001 | | ✅ |
+| F-005 | Register, login, verify email, forgot/reset password pages | F-003, A-008 | PD-014 | ✅ |
+| F-006 | Dashboard layout: permission-based sidebar, header, notification bell placeholder | F-003, A-009 | | ✅ |
+| F-007 | Staff pages: list, invite, role change, deactivate | F-006, A-015 | | ✅ |
+| F-008 | Outlet settings page and tables page with QR view and print | F-006, TB-003, O-002 | | ✅ |
+| F-009 | Menu management: categories, items, options, image upload | F-006, M-004 | | ✅ |
+| F-010 | Guest QR menu page (SSR, mobile first) | F-001, R-002 | | ✅ |
+| F-011 | Guest cart, place order, live tracking, add more, request bill | F-010, R-013 | | ✅ |
+| F-012 | Waiter screen: tables overview, pending confirmations, place order, serve | F-006, R-013 | | ✅ |
+| F-013 | Kitchen board: live columns, item status, out-of-stock toggle | F-006, R-013 | | ✅ |
 | F-014 | Inventory pages: ingredients, recipes, stock, restock, adjust, wastage, movements | F-006, I-006 | | ✅ |
 | F-015 | Billing and payment UI: bill view, cash payment, eSewa redirect, success and failure pages, eSewa settings | F-012, PAY-005 | | ✅ |
 | F-016 | Analytics dashboard | F-006, AN-004 | PD-015 | ✅ |
-| F-017 | Multi-outlet UI: switcher (Owner, Manager), add outlet, staff assignments, menu overrides | F-006, O-005, M-005 | | ⬜ |
-| F-018 | Consolidated Owner dashboard | F-016, AN-006 | | ⬜ |
+| F-017 | Multi-outlet UI: switcher (Owner, Manager), add outlet, staff assignments, menu overrides | F-006, O-005, M-005 | | ✅ |
+| F-018 | Consolidated Owner dashboard | F-016, AN-006 | | ✅ |
 | F-019 | Subscription page: plan, usage, renewal reference, contact-us form | F-006, S-003, PAY-008 | | ⬜ |
 | F-020 | Super Admin panel: organizations, plans, subscriptions, leads, stats | F-006, SA-006 | | ⬜ |
-| F-021 | Notifications UI with real-time updates | F-006, N-002 | | ⬜ |
+| F-021 | Notifications UI with real-time updates | F-006, N-002 | | ✅ |
 | F-022 | Polish: loading, empty and error states, responsive pass, accessibility basics | all UI | | ⬜ |
 
 ---
@@ -345,7 +345,21 @@ Uses existing rate-limit middleware (T-012) with Redis. 27 tests pass (11 sessio
 | 2026-11-24 | SA-006 | ✅ done | Super Admin Platform stats: comprehensive dashboard with organizations, subscriptions, plans, outlets, staff, leads, and revenue stats. Includes subscription distribution by plan, staff by role, revenue by plan, and monthly revenue. All routes require Super Admin role. Full OpenAPI docs. Build passes. |
 | 2026-11-24 | F-001 | ✅ done | Next.js 15 scaffold with App Router, TS strict, Tailwind v4, shadcn/ui. Folder structure per CODING_STANDARDS.md. Design tokens from DESIGN.md (OKLCH, Hearth teal `#0B5D66`, Hind + Barlow fonts, status colors, KDS dark theme). API client with credentials, X-Outlet-Id, error mapping. TanStack Query + Zustand stores (auth, outlet, UI). ESLint, Prettier, Vitest + React Testing Library. `config/brand.ts`, `middleware.ts` route protection. Decisions DS-001, DS-002, DS-003 recorded. All quality checks pass. |
 | 2026-11-24 | F-002 | ✅ done | Feature-based API services for all modules (auth, outlet, staff, table, menu, order, kitchen, inventory, payment, analytics, subscription, admin). TanStack Query provider configured with queryKeys, queryUtils for invalidation. All API calls route through lib/apiClient with credentials, X-Outlet-Id, error mapping. Type-check, lint, test pass. |
+| 2026-11-24 | F-003 | ✅ done | Auth store (Zustand) with sessionStorage persistence, `middleware.ts` route protection for `/dashboard/*` and `/admin/*`, session bootstrap via `/auth/me` on app load. Access/refresh cookies with httpOnly, Secure, SameSite=Lax. TanStack Query integration. Type-check, build, lint pass. |
+| 2026-11-24 | F-004 | ✅ done | Public landing (`/(public)/page.tsx`) with hero, features, testimonials, CTA; Pricing (`/(public)/pricing/page.tsx`) with 3 tiers (Trial/Single/Multi-outlet), FAQ, SEO metadata. Both SSR with `Metadata` exports. Type-check, build, lint pass. |
+| 2026-11-24 | F-005 | ✅ done | Auth pages under `/(auth)`: Login, Register, Verify Email, Forgot Password, Reset Password. React Hook Form + Zod validation, server error handling, redirect preservation. Register creates org+outlet+owner+trial subscription. Type-check, build, lint pass. |
+| 2026-11-24 | F-006 | ✅ done | Dashboard layout (`/(dashboard)/layout.tsx`): permission-based sidebar (8 modules), sticky header with outlet switcher (DropdownMenu), notification bell, user avatar menu. Mobile Sheet sidebar. `hasPermission` guards from authStore. Type-check, build, lint pass. |
+| 2026-11-24 | F-007 | ✅ done | Staff page (`/dashboard/staff`): paginated table with role/outlet/status badges, invite dialog (role + outlet), role change (Owner/Manager/Waiter/Kitchen with hierarchy guards), deactivate (revokes tokens). Owner org-wide, Manager outlet-scoped. Type-check, build, lint pass. |
+| 2026-11-24 | F-008 | ✅ done | Outlet page (`/dashboard/outlet`): settings form (name, address, phone, timezone, tax%, service charge%) with react-hook-form; Tables page (`/dashboard/tables`): CRUD with label/seats, QR code view (modal with PNG), print/download QR, regenerate token. Owner/Manager with `tables.manage`. Type-check, build, lint pass. |
+| 2026-11-24 | F-009 | ✅ done | Menu page (`/dashboard/menu`): Categories (CRUD, drag-reorder), Items (CRUD with price, veg, image upload to Cloudinary, options/variants/addons), Outlet price/availability overrides, Availability toggle per outlet. Owner/Manager with `menu.edit`. Type-check, build, lint pass. |
+| 2026-11-24 | F-010 | ✅ done | Guest QR menu page (SSR): `/m/[qrToken]` with dynamic metadata, server-fetched menu, client hydration. Category tabs, item cards with images/options, cart drawer with quantity/options, session init via `/public/sessions`, order placement via `/public/orders`, live tracking via Socket.IO, request bill. Type-check, build, lint pass. |
+| 2026-11-24 | F-011 | ✅ done | Guest cart, place order, live tracking, add more, request bill: integrated into GuestMenuPageClient. Cart state with options, real-time order status updates (pending→placed→preparing→ready→served), add more items to existing session, bill request button emits socket event to waiters. Type-check, build, lint pass. |
+| 2026-11-24 | F-012 | ✅ done | Waiter screen (`/dashboard/orders`): table grid with status badges, orders tabs (pending/active/completed), confirm/reject with reason, place staff order for table, live Socket.IO updates for new orders and status changes. Type-check, build, lint pass. |
+| 2026-11-24 | F-013 | ✅ done | Kitchen board (`/dashboard/kitchen`): three columns (Placed/Preparing/Ready), item cards with status progression buttons, out-of-stock toggle via `/menu/items/:id/availability`, auto-derive order status from items, Socket.IO events to waiters/guests. Type-check, build, lint pass. |
 | 2026-11-24 | F-015 | ✅ done | Billing & payment UI: bill list with pagination, bill detail dialog with cash payment, eSewa redirect flow (success/callback/failure pages), eSewa settings CRUD. Status badges for bills, payments, methods. Print invoice via HTML fetch. Open-session picker for new bills with optional discount. Type-check, build (21/21 static pages), test (9/9), lint pass. |
 | 2026-11-24 | F-016 | ✅ done | Analytics dashboard: summary cards (revenue, orders, AOV, items sold), revenue-by-day line chart (Recharts), peak-hours bar chart, top-items table, payments breakdown by method/status. Date-range toggle (today/7d/30d/90d), chart/table view switch, loading/empty/error states. Owner org-wide, Manager outlet-scoped via hasRole/hasPermission. Type-check, build, lint pass. |
+| 2026-11-24 | F-017 | ✅ done | Multi-outlet UI: Enhanced outlet switcher in header with full outlet list + create outlet dialog (Owner only, plan-gated). Staff assignments dialog (Manager can assign Waiter/Kitchen to one outlet, Manager to multiple). Menu item outlet overrides dialog (price, availability, auto-unavailable per outlet). All using existing backend endpoints: `/outlets`, `/outlets/me/active-outlet`, `/staff/:id/assignments`, `/menu/items/:id/outlet-overrides`. Type-check, build, lint pass. |
+| 2026-11-24 | F-021 | ✅ done | Notifications UI: Header dropdown with unread count badge, real-time updates via Socket.IO (`notification:new` event), list view with pagination/filtering, mark-as-read/mark-all-read actions. Notification page (`/dashboard/notifications`) with table view, type/status filters. Uses existing backend endpoints: `/notifications`, `/notifications/unread-count`, `/notifications/{id}/read`, `/notifications/read-all`. Type-check, build, lint pass. |
+| 2026-11-24 | F-018 | ✅ done | Consolidated Owner dashboard: Organization-wide analytics across all outlets. Summary cards (outlets, revenue, orders, items). Per-outlet breakdown tables for revenue, orders, payments, inventory/wastage. Top items overall and per outlet. Payment method breakdown. Date-range toggle (7d/30d/90d). Owner-only access via `analytics.view` + `hasRole('owner')`. Uses `/analytics/consolidated` endpoint. Type-check, build, lint pass. |
 
 The agent appends a row after each completed task.

@@ -20,3 +20,12 @@ export function formatDate(value: string | Date | null | undefined): string {
   if (Number.isNaN(date.getTime())) return '-'
   return date.toLocaleString()
 }
+
+export function formatCompactCurrency(amount: string | number): string {
+  const value = typeof amount === 'string' ? Number.parseFloat(amount) : amount
+  if (!Number.isFinite(value)) return 'NPR 0'
+  return `NPR ${new Intl.NumberFormat('en-IN', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value)}`
+}
