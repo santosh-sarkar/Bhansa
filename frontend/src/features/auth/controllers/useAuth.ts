@@ -19,7 +19,7 @@ export function useAuth() {
 
   useEffect(() => {
     if (data) {
-      const mappedUser = mapAuthMeToUser(data.user)
+      const mappedUser = mapAuthMeToUser(data)
       setUser(mappedUser)
     }
   }, [data, setUser])

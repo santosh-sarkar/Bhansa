@@ -12,6 +12,10 @@ export const routes = {
   resetPassword: '/reset-password',
   acceptInvite: '/accept-invite',
 
+  // Payment callback routes (public)
+  esewaSuccess: '/payment/esewa/success',
+  esewaFailure: '/payment/esewa/failure',
+
   // Dashboard routes (protected)
   dashboard: '/dashboard',
   menu: '/dashboard/menu',

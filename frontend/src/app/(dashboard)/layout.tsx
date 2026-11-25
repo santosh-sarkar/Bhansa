@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu'
-import { Bell, Menu, X, LogOut, User, Settings, ChevronRight, Building2, Utensils, Users, BarChart3, CreditCard, Package, ClipboardList, LayoutDashboard, Shield } from 'lucide-react'
+import { Bell, Menu, X, LogOut, User, Settings, ChevronRight, Building2, Utensils, Users, BarChart3, CreditCard, Package, ClipboardList, LayoutDashboard, Shield, ChefHat } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { routes } from '@/config/routes'
 
@@ -26,7 +26,7 @@ const navigation = [
   { name: 'Tables', href: routes.tables, icon: Building2, permission: 'tables.manage' },
   { name: 'Staff', href: routes.staff, icon: Users, permission: 'staff.manage' },
   { name: 'Orders', href: routes.orders, icon: ClipboardList, permission: 'order.manage' },
-  { name: 'Kitchen', href: routes.kitchen, icon: Utensils, permission: 'kitchen.manage' },
+  { name: 'Kitchen', href: routes.kitchen, icon: ChefHat, permission: 'order.update_status' },
   { name: 'Inventory', href: routes.inventory, icon: Package, permission: 'inventory.manage' },
   { name: 'Billing', href: routes.billing, icon: CreditCard, permission: 'billing.manage' },
   { name: 'Analytics', href: routes.analytics, icon: BarChart3, permission: 'analytics.view' },
