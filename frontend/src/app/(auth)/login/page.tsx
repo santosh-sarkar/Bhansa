@@ -29,8 +29,7 @@ function LoginFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || routes.dashboard
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { setUser, setError } = useAuthStore()
+  const { setUser } = useAuthStore()
 
   const [isLoading, setIsLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
@@ -49,11 +48,14 @@ function LoginFormContent() {
     setServerError(null)
 
     try {
-      const result = await api.post<{ user: unknown }>('/auth/login', data)
+      const result = await api.post<{ user: { id: string; email: string; full_name: string } }>('/auth/login', data)
       if (result.error) {
         setServerError(result.error.message)
         return
       }
+
+      // Login successful - cookies are set by backend
+      // router.refresh() will trigger AuthProvider to fetch /auth/me and populate full user state
       router.push(redirect)
       router.refresh()
     } catch (err) {

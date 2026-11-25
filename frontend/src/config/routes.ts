@@ -18,6 +18,7 @@ export const routes = {
 
   // Dashboard routes (protected)
   dashboard: '/dashboard',
+  selectOutlet: '/dashboard/select-outlet',
   menu: '/dashboard/menu',
   outlet: '/dashboard/outlet',
   tables: '/dashboard/tables',

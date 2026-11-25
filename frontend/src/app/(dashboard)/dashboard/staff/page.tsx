@@ -68,20 +68,22 @@ const roles = [
   { value: 'kitchen', label: 'Kitchen' },
 ] as const
 
+// Role badge styles using semantic CSS variables
 const roleColors: Record<string, string> = {
-  owner: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-  manager: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  waiter: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  kitchen: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  owner: 'bg-[var(--role-owner-bg)] text-[var(--role-owner)]',
+  manager: 'bg-[var(--role-manager-bg)] text-[var(--role-manager)]',
+  waiter: 'bg-[var(--role-waiter-bg)] text-[var(--role-waiter)]',
+  kitchen: 'bg-[var(--role-kitchen-bg)] text-[var(--role-kitchen)]',
 }
 
+// Status badge styles using semantic CSS variables
 const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-  accepted: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  expired: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
-  revoked: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-  active: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
+  pending: 'bg-[var(--invite-pending-bg)] text-[var(--invite-pending)]',
+  accepted: 'bg-[var(--invite-accepted-bg)] text-[var(--invite-accepted)]',
+  expired: 'bg-[var(--invite-expired-bg)] text-[var(--invite-expired)]',
+  revoked: 'bg-[var(--invite-revoked-bg)] text-[var(--invite-revoked)]',
+  active: 'bg-[var(--status-ready-bg)] text-[var(--status-ready)]',
+  inactive: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]',
 }
 
 function StaffTable({

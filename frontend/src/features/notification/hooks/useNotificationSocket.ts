@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { getSocket } from '@/lib/socket'
+import { onNotification } from '@/lib/socket'
 
 export function useNotificationSocket() {
   const queryClient = useQueryClient()
@@ -13,20 +13,12 @@ export function useNotificationSocket() {
   }, [queryClient])
 
   useEffect(() => {
-    const s = getSocket()
-
-    // No need to join a specific room - notifications are user-specific
-    // The server sends notifications to the user's socket
-
-    const handleNotification = (data: { notificationId: string; type: string; payload: Record<string, string> }) => {
+    // Use the new socket event helper with automatic cleanup
+    const cleanup = onNotification((data) => {
       console.log('New notification:', data)
       invalidateNotifications()
-    }
+    })
 
-    s.on('notification:new', handleNotification)
-
-    return () => {
-      s.off('notification:new', handleNotification)
-    }
+    return cleanup
   }, [invalidateNotifications])
 }

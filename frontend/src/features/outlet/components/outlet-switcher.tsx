@@ -15,6 +15,7 @@ import { Building2, Plus, ChevronRight, Check, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { routes } from '@/config/routes'
 import { fetchOutlets, createOutlet, setActiveOutlet, type Outlet } from '@/features/outlet/services/outlet.api'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -62,6 +63,7 @@ const commonTimezones = [
 
 function CreateOutletDialog({ onSuccess }: { onSuccess: () => void }) {
   const queryClient = useQueryClient()
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -100,6 +102,7 @@ function CreateOutletDialog({ onSuccess }: { onSuccess: () => void }) {
       setIsOpen(false)
       setError(null)
       onSuccess()
+      router.refresh()
     },
     onError: (err: Error) => {
       setError(err.message)

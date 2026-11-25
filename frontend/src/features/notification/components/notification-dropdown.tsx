@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuLabel,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Bell, Loader2, Check, X, Mail, AlertTriangle, Info } from 'lucide-react'
@@ -107,26 +108,30 @@ export function NotificationDropdown() {
       open={isOpen}
       onOpenChange={setIsOpen}
     >
-      <DropdownMenuTrigger>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative"
-          aria-label={`${count} unread notifications`}
-        >
-          <Bell className="h-5 w-5" aria-hidden="true" />
-          {count > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium">
-              {count > 99 ? '99+' : count}
-            </span>
-          )}
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={(props) => (
+          <Button
+            {...props}
+            variant="ghost"
+            size="icon"
+            className="relative"
+            aria-label={`${count} unread notifications`}
+          >
+            <Bell className="h-5 w-5" aria-hidden="true" />
+            {count > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium">
+                {count > 99 ? '99+' : count}
+              </span>
+            )}
+          </Button>
+        )}
+      />
 
       <DropdownMenuContent align="end" className="w-80 max-h-[600px]">
-        <div className="flex items-center justify-between">
-          <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-          {count > 0 && (
+        <DropdownMenuGroup>
+          <div className="flex items-center justify-between">
+            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            {count > 0 && (
             <Button
               variant="ghost"
               size="sm"
@@ -145,8 +150,9 @@ export function NotificationDropdown() {
             </Button>
           )}
         </div>
+      </DropdownMenuGroup>
 
-        <DropdownMenuSeparator />
+      <DropdownMenuSeparator />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-8">

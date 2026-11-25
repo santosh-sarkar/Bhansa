@@ -43,7 +43,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
-      isLoading: true,
+      isLoading: false, // React Query handles loading state
       error: null,
 
       setUser: (user) =>

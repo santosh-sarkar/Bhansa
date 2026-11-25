@@ -41,6 +41,26 @@
   --color-status-cancelled: var(--status-cancelled);
   --color-status-cancelled-bg: var(--status-cancelled-bg);
 
+  /* role badges */
+  --color-role-owner: var(--role-owner);
+  --color-role-owner-bg: var(--role-owner-bg);
+  --color-role-manager: var(--role-manager);
+  --color-role-manager-bg: var(--role-manager-bg);
+  --color-role-waiter: var(--role-waiter);
+  --color-role-waiter-bg: var(--role-waiter-bg);
+  --color-role-kitchen: var(--role-kitchen);
+  --color-role-kitchen-bg: var(--role-kitchen-bg);
+
+  /* invitation status */
+  --color-invite-pending: var(--invite-pending);
+  --color-invite-pending-bg: var(--invite-pending-bg);
+  --color-invite-accepted: var(--invite-accepted);
+  --color-invite-accepted-bg: var(--invite-accepted-bg);
+  --color-invite-expired: var(--invite-expired);
+  --color-invite-expired-bg: var(--invite-expired-bg);
+  --color-invite-revoked: var(--invite-revoked);
+  --color-invite-revoked-bg: var(--invite-revoked-bg);
+
   /* payment brand (official eSewa colors) */
   --color-esewa: var(--esewa);
   --color-esewa-foreground: var(--esewa-foreground);
@@ -106,6 +126,26 @@
   --status-cancelled: oklch(0.471 0.166 29);
   --status-cancelled-bg: oklch(0.937 0.026 27);
 
+  /* role badges */
+  --role-owner: oklch(0.55 0.22 290);
+  --role-owner-bg: oklch(0.94 0.03 290);
+  --role-manager: oklch(0.48 0.18 250);
+  --role-manager-bg: oklch(0.94 0.02 250);
+  --role-waiter: oklch(0.52 0.15 150);
+  --role-waiter-bg: oklch(0.93 0.02 150);
+  --role-kitchen: oklch(0.62 0.20 55);
+  --role-kitchen-bg: oklch(0.95 0.03 55);
+
+  /* invitation status */
+  --invite-pending: oklch(0.58 0.15 85);
+  --invite-pending-bg: oklch(0.95 0.02 85);
+  --invite-accepted: oklch(0.52 0.15 150);
+  --invite-accepted-bg: oklch(0.93 0.02 150);
+  --invite-expired: oklch(0.45 0.02 250);
+  --invite-expired-bg: oklch(0.94 0.01 250);
+  --invite-revoked: oklch(0.50 0.18 30);
+  --invite-revoked-bg: oklch(0.94 0.02 30);
+
   /* payment brand (official eSewa colors) */
   --esewa: oklch(0.734 0.200 145);
   --esewa-foreground: oklch(0.178 0 0);
@@ -155,6 +195,26 @@
   --status-ready: oklch(0.760 0.140 156);
   --status-neutral: oklch(0.722 0.022 244);
   --status-cancelled: oklch(0.732 0.164 27);
+
+  /* role badges on dark */
+  --role-owner: oklch(0.75 0.15 290);
+  --role-owner-bg: oklch(0.25 0.05 290);
+  --role-manager: oklch(0.72 0.12 250);
+  --role-manager-bg: oklch(0.25 0.04 250);
+  --role-waiter: oklch(0.72 0.12 150);
+  --role-waiter-bg: oklch(0.25 0.04 150);
+  --role-kitchen: oklch(0.78 0.15 55);
+  --role-kitchen-bg: oklch(0.25 0.05 55);
+
+  /* invitation status on dark */
+  --invite-pending: oklch(0.78 0.12 85);
+  --invite-pending-bg: oklch(0.25 0.04 85);
+  --invite-accepted: oklch(0.72 0.12 150);
+  --invite-accepted-bg: oklch(0.25 0.04 150);
+  --invite-expired: oklch(0.65 0.02 250);
+  --invite-expired-bg: oklch(0.25 0.02 250);
+  --invite-revoked: oklch(0.73 0.16 30);
+  --invite-revoked-bg: oklch(0.25 0.04 30);
 
   /* kitchen board (always dark) */
   --kds-background: oklch(0.192 0.016 245);

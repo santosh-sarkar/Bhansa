@@ -4,9 +4,10 @@ import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { fetchAuthMe, mapAuthMeToUser } from '../services/auth.api'
+import { api } from '@/lib/apiClient'
 
 export function useAuth() {
-  const { user, isAuthenticated, isLoading, error, setUser, setLoading, setError, logout } =
+  const { user, isAuthenticated, error, setUser, setError, logout } =
     useAuthStore()
   const queryClient = useQueryClient()
 
@@ -23,10 +24,6 @@ export function useAuth() {
       setUser(mappedUser)
     }
   }, [data, setUser])
-
-  useEffect(() => {
-    setLoading(queryLoading)
-  }, [queryLoading, setLoading])
 
   useEffect(() => {
     if (queryError) {
@@ -56,12 +53,10 @@ export function useAuth() {
   return {
     user,
     isAuthenticated,
-    isLoading: isLoading || queryLoading,
+    isLoading: queryLoading,
     error,
     refreshAuth,
     login,
     logout: handleLogout,
   }
 }
-
-import { api } from '@/lib/apiClient'
