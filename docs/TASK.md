@@ -232,9 +232,9 @@ Each runs after the backend tasks it needs. Structure and rules: `CODING_STANDAR
 | F-011 | Guest cart, place order, live tracking, add more, request bill | F-010, R-013 | | ⬜ |
 | F-012 | Waiter screen: tables overview, pending confirmations, place order, serve | F-006, R-013 | | ⬜ |
 | F-013 | Kitchen board: live columns, item status, out-of-stock toggle | F-006, R-013 | | ⬜ |
-| F-014 | Inventory pages: ingredients, recipes, stock, restock, adjust, wastage, movements | F-006, I-006 | | ⬜ |
-| F-015 | Billing and payment UI: bill view, cash payment, eSewa redirect, success and failure pages, eSewa settings | F-012, PAY-005 | | ⬜ |
-| F-016 | Analytics dashboard | F-006, AN-004 | PD-015 | ⬜ |
+| F-014 | Inventory pages: ingredients, recipes, stock, restock, adjust, wastage, movements | F-006, I-006 | | ✅ |
+| F-015 | Billing and payment UI: bill view, cash payment, eSewa redirect, success and failure pages, eSewa settings | F-012, PAY-005 | | ✅ |
+| F-016 | Analytics dashboard | F-006, AN-004 | PD-015 | ✅ |
 | F-017 | Multi-outlet UI: switcher (Owner, Manager), add outlet, staff assignments, menu overrides | F-006, O-005, M-005 | | ⬜ |
 | F-018 | Consolidated Owner dashboard | F-016, AN-006 | | ⬜ |
 | F-019 | Subscription page: plan, usage, renewal reference, contact-us form | F-006, S-003, PAY-008 | | ⬜ |
@@ -345,5 +345,7 @@ Uses existing rate-limit middleware (T-012) with Redis. 27 tests pass (11 sessio
 | 2026-11-24 | SA-006 | ✅ done | Super Admin Platform stats: comprehensive dashboard with organizations, subscriptions, plans, outlets, staff, leads, and revenue stats. Includes subscription distribution by plan, staff by role, revenue by plan, and monthly revenue. All routes require Super Admin role. Full OpenAPI docs. Build passes. |
 | 2026-11-24 | F-001 | ✅ done | Next.js 15 scaffold with App Router, TS strict, Tailwind v4, shadcn/ui. Folder structure per CODING_STANDARDS.md. Design tokens from DESIGN.md (OKLCH, Hearth teal `#0B5D66`, Hind + Barlow fonts, status colors, KDS dark theme). API client with credentials, X-Outlet-Id, error mapping. TanStack Query + Zustand stores (auth, outlet, UI). ESLint, Prettier, Vitest + React Testing Library. `config/brand.ts`, `middleware.ts` route protection. Decisions DS-001, DS-002, DS-003 recorded. All quality checks pass. |
 | 2026-11-24 | F-002 | ✅ done | Feature-based API services for all modules (auth, outlet, staff, table, menu, order, kitchen, inventory, payment, analytics, subscription, admin). TanStack Query provider configured with queryKeys, queryUtils for invalidation. All API calls route through lib/apiClient with credentials, X-Outlet-Id, error mapping. Type-check, lint, test pass. |
+| 2026-11-24 | F-015 | ✅ done | Billing & payment UI: bill list with pagination, bill detail dialog with cash payment, eSewa redirect flow (success/callback/failure pages), eSewa settings CRUD. Status badges for bills, payments, methods. Print invoice via HTML fetch. Open-session picker for new bills with optional discount. Type-check, build (21/21 static pages), test (9/9), lint pass. |
+| 2026-11-24 | F-016 | ✅ done | Analytics dashboard: summary cards (revenue, orders, AOV, items sold), revenue-by-day line chart (Recharts), peak-hours bar chart, top-items table, payments breakdown by method/status. Date-range toggle (today/7d/30d/90d), chart/table view switch, loading/empty/error states. Owner org-wide, Manager outlet-scoped via hasRole/hasPermission. Type-check, build, lint pass. |
 
 The agent appends a row after each completed task.

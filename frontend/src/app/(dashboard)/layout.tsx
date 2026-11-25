@@ -28,7 +28,7 @@ const navigation = [
   { name: 'Orders', href: routes.orders, icon: ClipboardList, permission: 'order.manage' },
   { name: 'Kitchen', href: routes.kitchen, icon: ChefHat, permission: 'order.update_status' },
   { name: 'Inventory', href: routes.inventory, icon: Package, permission: 'inventory.manage' },
-  { name: 'Billing', href: routes.billing, icon: CreditCard, permission: 'billing.manage' },
+  { name: 'Billing', href: routes.billing, icon: CreditCard, permission: 'payment.record' },
   { name: 'Analytics', href: routes.analytics, icon: BarChart3, permission: 'analytics.view' },
 ]
 
