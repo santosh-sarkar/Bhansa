@@ -31,6 +31,7 @@ export const routes = {
   subscription: '/dashboard/subscription',
   notifications: '/dashboard/notifications',
   settings: '/dashboard/settings',
+  superAdmin: '/dashboard/super-admin',
 
   // Admin routes
   admin: '/admin',

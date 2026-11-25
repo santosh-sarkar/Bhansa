@@ -237,10 +237,10 @@ Each runs after the backend tasks it needs. Structure and rules: `CODING_STANDAR
 | F-016 | Analytics dashboard | F-006, AN-004 | PD-015 | ✅ |
 | F-017 | Multi-outlet UI: switcher (Owner, Manager), add outlet, staff assignments, menu overrides | F-006, O-005, M-005 | | ✅ |
 | F-018 | Consolidated Owner dashboard | F-016, AN-006 | | ✅ |
-| F-019 | Subscription page: plan, usage, renewal reference, contact-us form | F-006, S-003, PAY-008 | | ⬜ |
-| F-020 | Super Admin panel: organizations, plans, subscriptions, leads, stats | F-006, SA-006 | | ⬜ |
+| F-019 | Subscription page: plan, usage, renewal reference, contact-us form | F-006, S-003, PAY-008 | | ✅ |
+| F-020 | Super Admin panel: organizations, plans, subscriptions, leads, stats | F-006, SA-006 | | ✅ |
 | F-021 | Notifications UI with real-time updates | F-006, N-002 | | ✅ |
-| F-022 | Polish: loading, empty and error states, responsive pass, accessibility basics | all UI | | ⬜ |
+| F-022 | Polish: loading, empty and error states, responsive pass, accessibility basics | all UI | | ✅ |
 
 ---
 
@@ -361,5 +361,8 @@ Uses existing rate-limit middleware (T-012) with Redis. 27 tests pass (11 sessio
 | 2026-11-24 | F-017 | ✅ done | Multi-outlet UI: Enhanced outlet switcher in header with full outlet list + create outlet dialog (Owner only, plan-gated). Staff assignments dialog (Manager can assign Waiter/Kitchen to one outlet, Manager to multiple). Menu item outlet overrides dialog (price, availability, auto-unavailable per outlet). All using existing backend endpoints: `/outlets`, `/outlets/me/active-outlet`, `/staff/:id/assignments`, `/menu/items/:id/outlet-overrides`. Type-check, build, lint pass. |
 | 2026-11-24 | F-021 | ✅ done | Notifications UI: Header dropdown with unread count badge, real-time updates via Socket.IO (`notification:new` event), list view with pagination/filtering, mark-as-read/mark-all-read actions. Notification page (`/dashboard/notifications`) with table view, type/status filters. Uses existing backend endpoints: `/notifications`, `/notifications/unread-count`, `/notifications/{id}/read`, `/notifications/read-all`. Type-check, build, lint pass. |
 | 2026-11-24 | F-018 | ✅ done | Consolidated Owner dashboard: Organization-wide analytics across all outlets. Summary cards (outlets, revenue, orders, items). Per-outlet breakdown tables for revenue, orders, payments, inventory/wastage. Top items overall and per outlet. Payment method breakdown. Date-range toggle (7d/30d/90d). Owner-only access via `analytics.view` + `hasRole('owner')`. Uses `/analytics/consolidated` endpoint. Type-check, build, lint pass. |
+| 2026-11-24 | F-019 | ✅ done | Subscription page: Current plan with status badge (trial/active/grace/suspended/cancelled), trial/grace dates, plan details with monthly price and multi-outlet flag. Usage vs limits progress bars for outlets, staff, menu items with over-limit warnings. Subscription overrides display. Payments tab with payment history and submit payment form (outlet, amount, method, reference, date). Custom plan request form (contact name, email, outlet count, message). Uses `/subscription`, `/subscription/custom-plan-request`, `/subscription/payments` endpoints. Type-check, build, lint pass. |
+| 2026-11-24 | F-020 | ✅ done | Super Admin panel: Tabbed interface with Stats (platform metrics, revenue, subscriptions, staff by role, monthly revenue), Organizations (list with pagination/filtering, suspend/reactivate/delete, detail view with outlets/staff/subscriptions), Plans (CRUD with code/name/price/limits/features, public flag, subscription count), Subscriptions (list with status filter, detail view with overrides/extend trial/change plan), Leads (list with handled filter, detail view, mark handled). All Super Admin only via `hasRole('super_admin')`. Uses `/super-admin/*` endpoints. Type-check, build, lint pass. |
+| 2026-11-24 | F-022 | ✅ done | Polish pass: Added SkipLink for keyboard navigation, SkipLink component, ErrorBoundary component, GlobalLoading/InlineLoading components, EmptyState component with domain-specific variants, global focus styles, reduced motion support, high contrast mode support, improved focus-visible styles, skip to main content link, better text selection, scrollbar styling, ErrorBoundary added to layout. Type-check, build, lint pass. |
 
 The agent appends a row after each completed task.

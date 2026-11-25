@@ -22,6 +22,7 @@ import { routes } from '@/config/routes'
 import { OutletSwitcher } from '@/features/outlet/components/outlet-switcher'
 import { NotificationDropdown } from '@/features/notification/components/notification-dropdown'
 import { useNotificationSocket } from '@/features/notification/hooks/useNotificationSocket'
+import { SkipLink } from '@/components/ui/skip-link'
 
 const navigation = [
   { name: 'Dashboard', href: routes.dashboard, icon: LayoutDashboard, permission: null },
@@ -34,6 +35,8 @@ const navigation = [
   { name: 'Billing', href: routes.billing, icon: CreditCard, permission: 'payment.record' },
   { name: 'Analytics', href: routes.analytics, icon: BarChart3, permission: 'analytics.view' },
   { name: 'Consolidated', href: routes.analyticsConsolidated, icon: BarChart3, permission: null, role: 'owner' },
+  { name: 'Subscription', href: routes.subscription, icon: CreditCard, permission: 'billing.manage' },
+  { name: 'Super Admin', href: routes.superAdmin, icon: Shield, permission: null, role: 'super_admin' },
 ]
 
 function SidebarNavItem({ item, pathname }: { item: typeof navigation[0]; pathname: string }) {
@@ -72,6 +75,7 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
+      <SkipLink />
       <Sidebar>
         <SidebarContent>
         {/* Mobile sidebar toggle */}
@@ -210,7 +214,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6">
+        <main id="main-content" className="flex-1 p-4 lg:p-6" tabIndex={-1}>
           {children}
         </main>
       </div>
