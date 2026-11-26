@@ -52,7 +52,13 @@ export function clearGuestCookie(res: Response): void {
 }
 
 export function clearAuthCookies(res: Response): void {
-  res.clearCookie(ACCESS_COOKIE_NAME, { ...BASE_COOKIE_OPTIONS });
+  res.clearCookie(REFRESH_COOKIE_NAME, {
+    ...BASE_COOKIE_OPTIONS,
+    path: REFRESH_COOKIE_PATH,
+  });
+}
+
+export function clearRefreshTokenCookie(res: Response): void {
   res.clearCookie(REFRESH_COOKIE_NAME, {
     ...BASE_COOKIE_OPTIONS,
     path: REFRESH_COOKIE_PATH,

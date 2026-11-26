@@ -36,10 +36,10 @@ describe('POST /api/v1/auth/login', () => {
       email: 'login-test@example.com',
       full_name: 'Login Test User',
     });
+    expect(response.body.data.accessToken).toBeDefined();
     const cookies = response.headers['set-cookie'];
     expect(cookies).toBeDefined();
     const cookieArray = Array.isArray(cookies) ? cookies : [cookies];
-    expect(cookieArray.some((c: string) => c.startsWith('access_token='))).toBe(true);
     expect(cookieArray.some((c: string) => c.startsWith('refresh_token='))).toBe(true);
   });
 

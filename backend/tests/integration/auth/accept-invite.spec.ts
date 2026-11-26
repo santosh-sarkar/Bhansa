@@ -19,9 +19,9 @@ const cookieValue = (setCookie: string | string[] | undefined, name: string) => 
   const cookies = Array.isArray(setCookie) ? setCookie : [setCookie ?? ''];
   const match = cookies.find((cookie) => cookie.startsWith(`${name}=`));
 
-  expect(match).toBeDefined();
+  if (!match) return undefined;
 
-  return match!.split(';')[0]!;
+  return match.split(';')[0]!;
 };
 
 const acceptInvite = (body: Record<string, unknown>) =>
@@ -81,10 +81,11 @@ describe('POST /api/v1/auth/accept-invite', () => {
       role: { code: 'waiter' },
       outlet: { id: outlet.id, name: outlet.name },
     });
+    expect(response.body.data.accessToken).toBeDefined();
 
     const setCookie = response.headers['set-cookie'] as unknown as string[];
-    expect(cookieValue(setCookie, 'access_token')).toContain('access_token=');
     expect(cookieValue(setCookie, 'refresh_token')).toContain('refresh_token=');
+    expect(cookieValue(setCookie, 'access_token')).toBeUndefined();
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { email: 'invited-waiter@example.com' },
@@ -111,10 +112,10 @@ describe('POST /api/v1/auth/accept-invite', () => {
     });
     expect(activeRefreshTokens).toBe(1);
 
-    // The cookies really authenticate the new user.
+    // The access token from body authenticates the new user.
     const me = await request(app)
       .get('/api/v1/auth/me')
-      .set('Cookie', `${cookieValue(setCookie, 'access_token')}`);
+      .set('Authorization', `Bearer ${response.body.data.accessToken}`);
 
     expect(me.status).toBe(200);
     expect(me.body.data.user.id).toBe(user.id);
@@ -168,6 +169,7 @@ describe('POST /api/v1/auth/accept-invite', () => {
       role: { code: 'owner' },
       outlet: null,
     });
+    expect(response.body.data.accessToken).toBeDefined();
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { email: 'invited-owner@example.com' },
@@ -181,10 +183,7 @@ describe('POST /api/v1/auth/accept-invite', () => {
 
     const me = await request(app)
       .get('/api/v1/auth/me')
-      .set(
-        'Cookie',
-        cookieValue(response.headers['set-cookie'] as unknown as string[], 'access_token'),
-      );
+      .set('Authorization', `Bearer ${response.body.data.accessToken}`);
 
     expect(me.status).toBe(200);
     expect(me.body.data.permissions).toEqual(expect.arrayContaining(['staff.manage']));

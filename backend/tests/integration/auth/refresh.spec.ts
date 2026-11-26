@@ -34,13 +34,17 @@ const cookieValue = (setCookie: string | string[] | undefined, name: string) => 
   const cookies = Array.isArray(setCookie) ? setCookie : [setCookie ?? ''];
   const match = cookies.find((cookie) => cookie.startsWith(`${name}=`));
 
-  expect(match).toBeDefined();
+  if (!match) return undefined;
 
-  return match!.split(';')[0]!;
+  return match.split(';')[0]!;
 };
 
 const refreshWith = (refreshCookie: string) =>
   request(app).post('/api/v1/auth/refresh').set('Cookie', refreshCookie);
+
+// We know the refresh cookie exists after login
+const getRefreshCookie = (setCookie: string | string[] | undefined) =>
+  cookieValue(setCookie, 'refresh_token')!;
 
 describe('POST /api/v1/auth/refresh', () => {
   it('rejects requests without a refresh token cookie', async () => {
@@ -78,23 +82,23 @@ describe('POST /api/v1/auth/refresh', () => {
     expect(response.body.error.code).toBe('UNAUTHENTICATED');
   });
 
-  it('rotates the refresh token and sets new cookies', async () => {
+  it('rotates the refresh token and returns new access token in body', async () => {
     const user = await createVerifiedUser('rotate@example.com');
     const loginResponse = await login(user.email);
-    const originalRefreshCookie = cookieValue(loginResponse.headers['set-cookie'], 'refresh_token');
+    const originalRefreshCookie = getRefreshCookie(loginResponse.headers['set-cookie']);
 
     const response = await refreshWith(originalRefreshCookie);
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.data.user).toMatchObject({ id: user.id, email: user.email });
+    expect(response.body.data.accessToken).toBeDefined();
 
     const setCookie = response.headers['set-cookie'] as unknown as string[];
-    const nextRefreshCookie = cookieValue(setCookie, 'refresh_token');
-    const nextAccessCookie = cookieValue(setCookie, 'access_token');
+    const nextRefreshCookie = getRefreshCookie(setCookie);
 
     expect(nextRefreshCookie).not.toBe(originalRefreshCookie);
-    expect(nextAccessCookie).toMatch(/^access_token=.+/);
+    expect(cookieValue(setCookie, 'access_token')).toBeUndefined();
 
     const refreshCookieHeader = setCookie.find((cookie) => cookie.startsWith('refresh_token='))!;
     expect(refreshCookieHeader).toContain('Path=/api/v1/auth');
@@ -110,14 +114,11 @@ describe('POST /api/v1/auth/refresh', () => {
   it('revokes the whole family when a rotated token is replayed', async () => {
     const user = await createVerifiedUser('replay@example.com');
     const loginResponse = await login(user.email);
-    const originalRefreshCookie = cookieValue(loginResponse.headers['set-cookie'], 'refresh_token');
+    const originalRefreshCookie = getRefreshCookie(loginResponse.headers['set-cookie']);
 
     const rotated = await refreshWith(originalRefreshCookie);
     expect(rotated.status).toBe(200);
-    const nextRefreshCookie = cookieValue(
-      rotated.headers['set-cookie'] as unknown as string[],
-      'refresh_token',
-    );
+    const nextRefreshCookie = getRefreshCookie(rotated.headers['set-cookie']);
 
     // Replaying the consumed token is treated as theft.
     const replay = await refreshWith(originalRefreshCookie);
@@ -137,7 +138,7 @@ describe('POST /api/v1/auth/refresh', () => {
   it('rejects a valid token for a deactivated user', async () => {
     const user = await createVerifiedUser('deactivated-refresh@example.com');
     const loginResponse = await login(user.email);
-    const refreshCookie = cookieValue(loginResponse.headers['set-cookie'], 'refresh_token');
+    const refreshCookie = getRefreshCookie(loginResponse.headers['set-cookie']);
 
     await prisma.user.update({ where: { id: user.id }, data: { is_active: false } });
 

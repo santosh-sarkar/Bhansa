@@ -255,6 +255,7 @@ const loginResponseSchema = z.object({
     email: z.string().email(),
     full_name: z.string(),
   }),
+  accessToken: z.string(),
 });
 
 registry.registerPath({
@@ -263,7 +264,7 @@ registry.registerPath({
   tags: ['Auth'],
   summary: 'Login with email and password',
   description:
-    'Authenticates user with email and password. Returns access token in cookie and refresh token in cookie. Blocks unverified email.',
+    'Authenticates user with email and password. Returns access token in response body and refresh token in httpOnly cookie. Blocks unverified email.',
   request: {
     body: {
       content: {
@@ -426,11 +427,11 @@ registry.registerPath({
   tags: ['Auth'],
   summary: 'Rotate the refresh token',
   description:
-    'Reads the refresh token cookie, rotates it, and sets new access and refresh cookies. Reusing an already rotated token revokes the whole token family.',
+    'Reads the refresh token cookie, rotates it, and returns new access token in body and refresh token in httpOnly cookie. Reusing an already rotated token revokes the whole token family.',
   security: [{ cookieAuth: [] }],
   responses: {
     200: {
-      description: 'New cookies issued',
+      description: 'New tokens issued',
       content: {
         'application/json': {
           schema: z.object({
@@ -441,6 +442,7 @@ registry.registerPath({
                 email: z.string().email(),
                 full_name: z.string(),
               }),
+              accessToken: z.string(),
             }),
           }),
         },
@@ -619,6 +621,7 @@ const acceptInviteResponseSchema = z.object({
       })
       .nullable(),
   }),
+  accessToken: z.string(),
 });
 
 registry.registerPath({
@@ -627,7 +630,7 @@ registry.registerPath({
   tags: ['Auth'],
   summary: 'Accept a staff invitation',
   description:
-    'Consumes an invitation token, creates the staff account, assigns the invited role and outlet, and signs the user in with access and refresh cookies.',
+    'Consumes an invitation token, creates the staff account, assigns the invited role and outlet, and returns access token in response body and refresh token in httpOnly cookie.',
   request: {
     body: {
       content: {

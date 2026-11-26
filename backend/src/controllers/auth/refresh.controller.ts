@@ -6,7 +6,6 @@ import { sendSuccess } from '@/utils/response';
 import {
   readCookie,
   REFRESH_COOKIE_NAME,
-  setAccessTokenCookie,
   setRefreshTokenCookie,
 } from '@/utils/cookies';
 
@@ -20,10 +19,9 @@ export const refreshController: RequestHandler = async (req, res, next) => {
 
     const { user, tokens } = await refreshTokens(refreshToken);
 
-    setAccessTokenCookie(res, tokens.accessToken);
     setRefreshTokenCookie(res, tokens.refreshToken);
 
-    sendSuccess(res, { user });
+    sendSuccess(res, { user, accessToken: tokens.accessToken });
   } catch (error) {
     next(error);
   }

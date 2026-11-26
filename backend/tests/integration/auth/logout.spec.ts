@@ -23,10 +23,13 @@ const cookieValue = (setCookie: string | string[] | undefined, name: string) => 
   const cookies = Array.isArray(setCookie) ? setCookie : [setCookie ?? ''];
   const match = cookies.find((cookie) => cookie.startsWith(`${name}=`));
 
-  expect(match).toBeDefined();
+  if (!match) return undefined;
 
-  return match!.split(';')[0]!;
+  return match.split(';')[0]!;
 };
+
+const getRefreshCookie = (setCookie: string | string[] | undefined) =>
+  cookieValue(setCookie, 'refresh_token')!;
 
 const login = async (email: string) => {
   const response = await request(app)
@@ -34,12 +37,13 @@ const login = async (email: string) => {
     .send({ email, password: PASSWORD });
 
   expect(response.status).toBe(200);
+  expect(response.body.data.accessToken).toBeDefined();
 
   const setCookie = response.headers['set-cookie'] as unknown as string[];
 
   return {
-    access: cookieValue(setCookie, 'access_token'),
-    refresh: cookieValue(setCookie, 'refresh_token'),
+    access: response.body.data.accessToken,
+    refresh: getRefreshCookie(setCookie),
   };
 };
 
@@ -61,7 +65,8 @@ describe('POST /api/v1/auth/logout', () => {
 
     const response = await request(app)
       .post('/api/v1/auth/logout')
-      .set('Cookie', `${first.access}; ${first.refresh}`);
+      .set('Authorization', `Bearer ${first.access}`)
+      .set('Cookie', first.refresh);
 
     expect(response.status).toBe(200);
     expect(response.body.data.logged_out).toBe(true);
@@ -74,19 +79,18 @@ describe('POST /api/v1/auth/logout', () => {
     expect(secondRefresh.status).toBe(200);
   });
 
-  it('clears both auth cookies', async () => {
+  it('clears refresh token cookie', async () => {
     const user = await createVerifiedUser('logout-cookies@example.com');
     const session = await login(user.email);
 
     const response = await request(app)
       .post('/api/v1/auth/logout')
-      .set('Cookie', `${session.access}; ${session.refresh}`);
+      .set('Authorization', `Bearer ${session.access}`)
+      .set('Cookie', session.refresh);
 
     const setCookie = response.headers['set-cookie'] as unknown as string[];
-    const clearedAccess = setCookie.find((cookie) => cookie.startsWith('access_token=;'));
     const clearedRefresh = setCookie.find((cookie) => cookie.startsWith('refresh_token=;'));
 
-    expect(clearedAccess).toBeDefined();
     expect(clearedRefresh).toBeDefined();
     expect(clearedRefresh).toContain('Path=/api/v1/auth');
     expect(clearedRefresh).toContain('Expires=Thu, 01 Jan 1970');
@@ -98,12 +102,13 @@ describe('POST /api/v1/auth/logout', () => {
 
     const withoutRefresh = await request(app)
       .post('/api/v1/auth/logout')
-      .set('Cookie', session.access);
+      .set('Authorization', `Bearer ${session.access}`);
     expect(withoutRefresh.status).toBe(200);
 
     const unknownToken = await request(app)
       .post('/api/v1/auth/logout')
-      .set('Cookie', `${session.access}; refresh_token=unknown-token`);
+      .set('Authorization', `Bearer ${session.access}`)
+      .set('Cookie', 'refresh_token=unknown-token');
     expect(unknownToken.status).toBe(200);
 
     // Nothing was revoked by the calls above.
@@ -127,7 +132,10 @@ describe('POST /api/v1/auth/logout-all', () => {
     const first = await login(user.email);
     const second = await login(user.email);
 
-    const response = await request(app).post('/api/v1/auth/logout-all').set('Cookie', first.access);
+    const response = await request(app)
+      .post('/api/v1/auth/logout-all')
+      .set('Authorization', `Bearer ${first.access}`)
+      .set('Cookie', first.refresh);
 
     expect(response.status).toBe(200);
     expect(response.body.data.logged_out).toBe(true);

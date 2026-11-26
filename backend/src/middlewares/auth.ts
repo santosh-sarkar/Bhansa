@@ -1,4 +1,4 @@
-import type { RequestHandler } from 'express';
+import type { Request, RequestHandler } from 'express';
 import { jwtVerify } from 'jose';
 
 import { env } from '@/config/env';
@@ -69,8 +69,18 @@ const loadUserWithRole = async (userId: string, outletId?: string | null) => {
   };
 };
 
+function extractAccessToken(req: Request): string | undefined {
+  // Check Authorization header first (Bearer token)
+  const authHeader = req.get('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.slice(7);
+  }
+  // Fallback to cookie
+  return readCookie(req, ACCESS_COOKIE_NAME);
+}
+
 export const authMiddleware: RequestHandler = async (req, res, next) => {
-  const accessToken = readCookie(req, ACCESS_COOKIE_NAME);
+  const accessToken = extractAccessToken(req);
 
   if (!accessToken) {
     next(new AppError('UNAUTHENTICATED', 'Authentication required', 401));
@@ -107,7 +117,7 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
 };
 
 export const optionalAuthMiddleware: RequestHandler = async (req, res, next) => {
-  const accessToken = readCookie(req, ACCESS_COOKIE_NAME);
+  const accessToken = extractAccessToken(req);
 
   if (!accessToken) {
     next();

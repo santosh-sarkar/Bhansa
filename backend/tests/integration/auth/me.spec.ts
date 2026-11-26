@@ -24,14 +24,9 @@ const loginAs = async (email: string, password = 'password123') => {
   const response = await request(app).post('/api/v1/auth/login').send({ email, password });
 
   expect(response.status).toBe(200);
+  expect(response.body.data.accessToken).toBeDefined();
 
-  const cookies = response.headers['set-cookie'];
-  const cookieArray = Array.isArray(cookies) ? cookies : [cookies];
-  const accessCookie = cookieArray.find((cookie: string) => cookie.startsWith('access_token='));
-
-  expect(accessCookie).toBeDefined();
-
-  return accessCookie!.split(';')[0]!;
+  return response.body.data.accessToken;
 };
 
 describe('GET /api/v1/auth/me', () => {
@@ -69,7 +64,7 @@ describe('GET /api/v1/auth/me', () => {
   it('rejects requests with an invalid access token', async () => {
     const response = await request(app)
       .get('/api/v1/auth/me')
-      .set('Cookie', 'access_token=not-a-valid-jwt');
+      .set('Authorization', 'Bearer not-a-valid-jwt');
 
     expect(response.status).toBe(401);
     expect(response.body.success).toBe(false);
@@ -81,7 +76,7 @@ describe('GET /api/v1/auth/me', () => {
 
     const response = await request(app)
       .get('/api/v1/auth/me')
-      .set('Cookie', `access_token=${expiredToken}`);
+      .set('Authorization', `Bearer ${expiredToken}`);
 
     expect(response.status).toBe(401);
     expect(response.body.success).toBe(false);
@@ -99,7 +94,7 @@ describe('GET /api/v1/auth/me', () => {
 
     const response = await request(app)
       .get('/api/v1/auth/me')
-      .set('Cookie', `access_token=${token}`);
+      .set('Authorization', `Bearer ${token}`);
 
     await prisma.user.update({
       where: { id: userId },
@@ -112,9 +107,9 @@ describe('GET /api/v1/auth/me', () => {
   });
 
   it('returns the current user with organization, assignments, permissions and outlet', async () => {
-    const cookie = await loginAs(email);
+    const accessToken = await loginAs(email);
 
-    const response = await request(app).get('/api/v1/auth/me').set('Cookie', cookie);
+    const response = await request(app).get('/api/v1/auth/me').set('Authorization', `Bearer ${accessToken}`);
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
