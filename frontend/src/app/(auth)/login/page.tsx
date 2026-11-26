@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { routes } from '@/config/routes'
 import { api } from '@/lib/apiClient'
 import { useAuthStore } from '@/store/authStore'
+import { tokenStore } from '@/lib/tokenStore'
 import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -48,13 +49,18 @@ function LoginFormContent() {
     setServerError(null)
 
     try {
-      const result = await api.post<{ user: { id: string; email: string; full_name: string } }>('/auth/login', data)
+      const result = await api.post<{ user: { id: string; email: string; full_name: string }; accessToken: string }>('/auth/login', data)
       if (result.error) {
         setServerError(result.error.message)
         return
       }
 
-      // Login successful - cookies are set by backend
+      // Store access token from response
+      if (result.data?.accessToken) {
+        tokenStore.setTokens({ accessToken: result.data.accessToken })
+      }
+
+      // Login successful - refresh_token cookie is set by backend
       // router.refresh() will trigger AuthProvider to fetch /auth/me and populate full user state
       router.push(redirect)
       router.refresh()

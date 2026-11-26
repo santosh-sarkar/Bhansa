@@ -12,7 +12,9 @@ function isPublicPath(pathname: string): boolean {
 async function validateSession(request: NextRequest): Promise<boolean> {
   const accessToken = request.cookies.get('access_token')?.value
   const refreshToken = request.cookies.get('refresh_token')?.value
-  if (!accessToken) return false
+  // Require both cookies - if refresh_token is missing (cleared by logout),
+  // the session is invalid even if access_token hasn't expired yet
+  if (!accessToken || !refreshToken) return false
 
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'

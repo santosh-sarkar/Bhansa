@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { fetchAuthMe, mapAuthMeToUser } from '../services/auth.api'
 import { api } from '@/lib/apiClient'
+import { tokenStore } from '@/lib/tokenStore'
 
 export function useAuth() {
   const { user, isAuthenticated, error, setUser, setError, logout } =
@@ -44,6 +45,7 @@ export function useAuth() {
     } catch {
       // Ignore logout errors
     } finally {
+      tokenStore.clear()
       logout()
       queryClient.clear()
       window.location.href = '/login'

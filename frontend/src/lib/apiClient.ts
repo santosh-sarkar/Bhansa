@@ -1,85 +1,150 @@
 export interface ApiError {
-  code: string;
-  message: string;
-  status: number;
-  details?: Record<string, string[]>;
+  code: string
+  message: string
+  status: number
+  details?: Record<string, string[]>
+}
+
+// Backend wraps responses in this envelope
+export interface SuccessEnvelope<T> {
+  success: true
+  data: T
 }
 
 export interface ApiResponse<T> {
-  data: T;
-  error?: never;
+  data: T
+  error?: never
 }
 
 export interface ApiErrorResponse {
-  data?: never;
-  error: ApiError;
+  data?: never
+  error: ApiError
 }
 
-export type ApiResult<T> = ApiResponse<T> | ApiErrorResponse;
+export type ApiResult<T> = ApiResponse<T> | ApiErrorResponse
 
 interface RequestOptions extends RequestInit {
-  outletId?: string;
-  params?: Record<string, string | number | boolean | undefined>;
+  outletId?: string
+  params?: Record<string, string | number | boolean | undefined>
+  skipAuth?: boolean
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'
 
-function buildUrl(endpoint: string, params?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(API_BASE_URL + endpoint);
+let isRefreshing = false
+let refreshPromise: Promise<string | null> | null = null
+
+function buildUrl(
+  endpoint: string,
+  params?: Record<string, string | number | boolean | undefined>
+): string {
+  const url = new URL(API_BASE_URL + endpoint)
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        url.searchParams.append(key, String(value));
+        url.searchParams.append(key, String(value))
       }
-    });
+    })
   }
-  return url.toString();
+  return url.toString()
 }
 
-function getAuthHeaders(): HeadersInit {
-  // Cookies are automatically sent with credentials: 'include'
-  return {};
+async function getAccessToken(): Promise<string | null> {
+  const { tokenStore } = await import('./tokenStore')
+  return tokenStore.accessToken
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+  // Prevent multiple simultaneous refresh attempts
+  if (isRefreshing) {
+    return refreshPromise!
+  }
+
+  isRefreshing = true
+  refreshPromise = (async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        return null
+      }
+
+      const contentType = response.headers.get('content-type')
+      const isJson = contentType?.includes('application/json')
+      const body = isJson ? await response.json() : await response.text()
+
+      const accessToken = isJson && body?.data?.accessToken
+      if (accessToken) {
+        const { tokenStore } = await import('./tokenStore')
+        tokenStore.setTokens({ accessToken })
+        return accessToken
+      }
+      return null
+    } catch {
+      return null
+    } finally {
+      isRefreshing = false
+      refreshPromise = null
+    }
+  })()
+
+  return refreshPromise
 }
 
 export async function apiClient<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<ApiResult<T>> {
-  const { outletId, params, headers, ...fetchOptions } = options;
+  const { outletId, params, skipAuth, headers, ...fetchOptions } = options
+
+  const accessToken = skipAuth ? null : await getAccessToken()
 
   const requestHeaders: HeadersInit = {
     'Content-Type': 'application/json',
-    ...getAuthHeaders(),
     ...(outletId ? { 'X-Outlet-Id': outletId } : {}),
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     ...headers,
-  };
+  }
 
   try {
     const response = await fetch(buildUrl(endpoint, params), {
       ...fetchOptions,
       headers: requestHeaders,
       credentials: 'include',
-    });
+    })
 
-    const contentType = response.headers.get('content-type');
-    const isJson = contentType?.includes('application/json');
-    const body = isJson ? await response.json() : await response.text();
-
-    if (!response.ok) {
-      const error: ApiError = {
-        code: isJson ? body?.error?.code ?? 'UNKNOWN_ERROR' : 'UNKNOWN_ERROR',
-        message: isJson ? body?.error?.message ?? 'An unexpected error occurred' : 'An unexpected error occurred',
-        status: response.status,
-        details: isJson ? body?.error?.details : undefined,
-      };
-      return { error };
+    // Handle 401 - try to refresh token and retry once
+    if (response.status === 401 && !skipAuth) {
+      const newToken = await refreshAccessToken()
+      if (newToken) {
+        // Retry with new token
+        const retryHeaders = {
+          ...requestHeaders,
+          Authorization: `Bearer ${newToken}`,
+        }
+        const retryResponse = await fetch(buildUrl(endpoint, params), {
+          ...fetchOptions,
+          headers: retryHeaders,
+          credentials: 'include',
+        })
+        return handleResponse<T>(retryResponse)
+      }
+      // Refresh failed - clear tokens and return error
+      const { tokenStore } = await import('./tokenStore')
+      tokenStore.clear()
+      return {
+        error: {
+          code: 'UNAUTHENTICATED',
+          message: 'Session expired. Please log in again.',
+          status: 401,
+        },
+      }
     }
 
-    if (response.status === 204) {
-      return { data: undefined as unknown as T };
-    }
-
-    return { data: body as T };
+    return handleResponse<T>(response)
   } catch (err) {
     if (err instanceof TypeError && err.message.includes('fetch')) {
       return {
@@ -88,7 +153,7 @@ export async function apiClient<T>(
           message: 'Unable to connect to the server. Please check your connection.',
           status: 0,
         },
-      };
+      }
     }
     return {
       error: {
@@ -96,8 +161,35 @@ export async function apiClient<T>(
         message: err instanceof Error ? err.message : 'An unexpected error occurred',
         status: 0,
       },
-    };
+    }
   }
+}
+
+async function handleResponse<T>(response: Response): Promise<ApiResult<T>> {
+  const contentType = response.headers.get('content-type')
+  const isJson = contentType?.includes('application/json')
+  const body = isJson ? await response.json() : await response.text()
+
+  if (!response.ok) {
+    const error: ApiError = {
+      code: isJson ? body?.error?.code ?? 'UNKNOWN_ERROR' : 'UNKNOWN_ERROR',
+      message: isJson ? body?.error?.message ?? 'An unexpected error occurred' : 'An unexpected error occurred',
+      status: response.status,
+      details: isJson ? body?.error?.details : undefined,
+    }
+    return { error }
+  }
+
+  if (response.status === 204) {
+    return { data: undefined as unknown as T }
+  }
+
+  // Unwrap SuccessEnvelope if present
+  const unwrappedBody = isJson && body && typeof body === 'object' && 'success' in body && body.success === true
+    ? (body as SuccessEnvelope<T>).data
+    : body
+
+  return { data: unwrappedBody as T }
 }
 
 export const api = {
@@ -127,4 +219,4 @@ export const api = {
 
   delete: <T>(endpoint: string, options?: RequestOptions) =>
     apiClient<T>(endpoint, { ...options, method: 'DELETE' }),
-};
+}

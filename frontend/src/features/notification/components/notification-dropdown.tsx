@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils'
 import { routes } from '@/config/routes'
 import { fetchNotifications, fetchUnreadCount, markNotificationRead, markAllNotificationsRead, type Notification } from '@/features/notification/services/notification.api'
 import { formatDate } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
+import { getPrimaryRole } from '@/lib/roleUtils'
 
 const notificationIcons: Record<string, React.ReactNode> = {
   order: <Mail className="h-4 w-4" />,
@@ -59,6 +61,13 @@ export function NotificationDropdown() {
   const queryClient = useQueryClient()
   const [isOpen, setIsOpen] = useState(false)
   const [markAllLoading, setMarkAllLoading] = useState(false)
+  const user = useAuthStore((state) => state.user)
+  const primaryRole = getPrimaryRole(user)
+  const notificationsRoute = primaryRole === 'super_admin' ? routes.superAdmin + '/notifications' :
+    primaryRole === 'owner' ? routes.ownerNotifications :
+    primaryRole === 'manager' ? routes.managerNotifications :
+    primaryRole === 'waiter' ? routes.waiterNotifications :
+    routes.kitchenNotifications
 
   const { data: unreadCount, refetch: refetchUnreadCount } = useQuery({
     queryKey: ['notifications', 'unread-count'],
@@ -201,7 +210,7 @@ export function NotificationDropdown() {
         )}
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => window.location.href = routes.notifications} className="text-center text-primary cursor-pointer">
+        <DropdownMenuItem onSelect={() => window.location.href = notificationsRoute} className="text-center text-primary cursor-pointer">
           View all notifications
         </DropdownMenuItem>
       </DropdownMenuContent>

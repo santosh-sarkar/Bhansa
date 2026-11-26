@@ -1,13 +1,7 @@
 import { api } from '@/lib/apiClient'
 import type { User, StaffAssignment } from '@/store/authStore'
 
-// Envelope that the backend wraps every success response in
-interface SuccessEnvelope<T> {
-  success: true
-  data: T
-}
-
-// Backend response structure from /auth/me (inside the envelope's `data`)
+// Backend response structure from /auth/me (auto-unwrapped by apiClient)
 export interface AuthMeResponse {
   user: {
     id: string
@@ -50,10 +44,10 @@ export interface AuthMeResponse {
 }
 
 export async function fetchAuthMe(): Promise<AuthMeResponse> {
-  const result = await api.get<SuccessEnvelope<AuthMeResponse>>('/auth/me')
+  const result = await api.get<AuthMeResponse>('/auth/me')
   if (result.error) throw new Error(result.error.message)
 
-  const payload = result.data?.data
+  const payload = result.data
   if (!payload?.user) throw new Error('Invalid /auth/me response')
 
   return {
@@ -68,6 +62,29 @@ export function mapAuthMeToUser(data: AuthMeResponse): User {
   const assignments = data.assignments
   const lastOutletId = data.last_outlet?.id ?? assignments[0]?.outlet?.id ?? null
 
+  const mappedAssignments = assignments.map((a): StaffAssignment => ({
+    id: a.id,
+    role: a.role.code,
+    outletId: a.outlet?.id ?? null,
+    outletName: a.outlet?.name ?? null,
+    // Organization-wide assignments have no outlet, so the outlet's active
+    // flag can't be used — treat them as active instead of always inactive.
+    isActive: a.outlet ? a.outlet.is_active : true,
+  }))
+
+  // Platform admins are flagged on the user record (`is_super_admin`), not via a
+  // role assignment. Surface it as an assignment so hasRole('super_admin') and
+  // getPrimaryRole() work consistently across the app.
+  if (data.user.is_super_admin) {
+    mappedAssignments.unshift({
+      id: `super-admin-${data.user.id}`,
+      role: 'super_admin',
+      outletId: null,
+      outletName: null,
+      isActive: true,
+    })
+  }
+
   return {
     id: data.user.id,
     email: data.user.email,
@@ -78,13 +95,7 @@ export function mapAuthMeToUser(data: AuthMeResponse): User {
     organizationName: org?.name ?? '',
     organizationSlug: org?.slug ?? '',
     lastOutletId,
-    assignments: assignments.map((a): StaffAssignment => ({
-      id: a.id,
-      role: a.role.code,
-      outletId: a.outlet?.id ?? null,
-      outletName: a.outlet?.name ?? null,
-      isActive: a.outlet?.is_active ?? false,
-    })),
+    assignments: mappedAssignments,
     permissions: data.permissions,
   }
 }
