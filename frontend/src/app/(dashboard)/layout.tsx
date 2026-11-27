@@ -21,6 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { LogOut, User as UserIcon, Settings, Wifi, WifiOff, Loader2, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import type { User as AuthUser } from '@/store/authStore'
+import { useAuth } from '@/features/auth/controllers/useAuth'
 import { routes } from '@/config/routes'
 import { OutletSwitcher } from '@/features/outlet/components/outlet-switcher'
 import { NotificationDropdown } from '@/features/notification/components/notification-dropdown'
@@ -265,9 +266,10 @@ function RoleLayout({ user, hasPermission, hasRole, logout, getCurrentOutletId, 
           {/* Footer */}
           <SidebarFooterVersion theme={header.theme} />
         </SidebarContent>
+      </Sidebar>
 
-        {/* Main content area */}
-        <SidebarInset className={cn(insetBg, sidebarBorder)}>
+      {/* Main content area */}
+      <SidebarInset className={cn(insetBg, sidebarBorder, 'min-w-0')}>
           {/* Top header */}
           <header className={cn('sticky top-0 z-40 flex h-16 items-center gap-4', headerBg, headerBorder, 'px-4 lg:px-6')}>
             {/* Mobile menu trigger */}
@@ -350,8 +352,16 @@ function RoleLayout({ user, hasPermission, hasRole, logout, getCurrentOutletId, 
             </OutletRequiredGuard>
           </main>
         </SidebarInset>
-      </Sidebar>
-    </SidebarProvider>
+      </SidebarProvider>
+    )
+  }
+
+function DashboardAuthFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-muted/30">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden="true" />
+      <span className="sr-only">Loading session...</span>
+    </div>
   )
 }
 
@@ -361,14 +371,31 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, hasPermission, hasRole, logout, getCurrentOutletId } = useAuthStore()
+  const { isAuthenticated, isLoading } = useAuth()
 
   // Initialize notification socket for this session
   useNotificationSocket()
 
+  // Client-side auth guard (the server middleware can't see the Bearer token)
+  useEffect(() => {
+    if (isLoading || isAuthenticated) return
+
+    const redirect =
+      pathname && pathname !== '/dashboard'
+        ? `?redirect=${encodeURIComponent(pathname)}`
+        : ''
+    router.replace(`/login${redirect}`)
+  }, [isLoading, isAuthenticated, pathname, router])
+
   // Detect role from pathname
   const detectedRole = useMemo(() => getRoleFromPathname(pathname), [pathname])
   const roleConfig = detectedRole ? getRoleConfig(detectedRole) : null
+
+  if (isLoading || !isAuthenticated) {
+    return <DashboardAuthFallback />
+  }
 
   // Role routes: render dynamic sidebar + header
   if (isRoleRoute(pathname) && roleConfig) {

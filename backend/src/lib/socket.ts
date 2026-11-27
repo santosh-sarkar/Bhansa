@@ -6,7 +6,6 @@ import { jwtVerify } from 'jose';
 import { env } from '@/config/env';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { ACCESS_COOKIE_NAME } from '@/utils/cookies';
 
 export interface SocketUser {
   id: string;
@@ -32,6 +31,24 @@ const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
  */
 export function getIO(): Server | null {
   return _io;
+}
+
+/**
+ * Extract access token from socket handshake.
+ * Checks handshake.auth.token first, then Authorization header.
+ */
+function extractAccessToken(socket: AuthenticatedSocket): string | undefined {
+  const authToken = socket.handshake.auth?.token;
+  if (typeof authToken === 'string' && authToken.length > 0) {
+    return authToken;
+  }
+
+  const header = socket.handshake.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    return header.slice(7);
+  }
+
+  return undefined;
 }
 
 export async function verifySocketToken(token: string): Promise<SocketUser | null> {
@@ -71,19 +88,6 @@ export async function verifySocketToken(token: string): Promise<SocketUser | nul
   }
 }
 
-function parseCookieHeader(cookieHeader: string | undefined): Record<string, string> {
-  if (!cookieHeader) return {};
-
-  const cookies: Record<string, string> = {};
-  for (const pair of cookieHeader.split(';')) {
-    const [key, ...valueParts] = pair.trim().split('=');
-    if (key && valueParts.length > 0) {
-      cookies[key] = valueParts.join('=');
-    }
-  }
-  return cookies;
-}
-
 async function loadUserAssignments(userId: string, _organizationId: string) {
   const assignments = await prisma.staffAssignment.findMany({
     where: {
@@ -117,18 +121,19 @@ export function initializeSocketServer(httpServer: HttpServer): Server {
   // Store the IO instance for later use
   _io = io;
 
-  // Authentication middleware
+  // Authentication middleware - optional auth (guest allowed)
   io.use((socket: AuthenticatedSocket, next) => {
     void (async () => {
       try {
-        const cookies = parseCookieHeader(socket.handshake.headers.cookie);
-        const accessToken = cookies[ACCESS_COOKIE_NAME];
+        const token = extractAccessToken(socket);
 
-        if (!accessToken) {
-          return next(new Error('Authentication required'));
+        if (!token) {
+          // Guest connection - allowed
+          logger.debug({ socketId: socket.id }, 'Anonymous socket connected');
+          return next();
         }
 
-        const user = await verifySocketToken(accessToken);
+        const user = await verifySocketToken(token);
         if (!user) {
           return next(new Error('Invalid or expired token'));
         }
@@ -143,14 +148,15 @@ export function initializeSocketServer(httpServer: HttpServer): Server {
   });
 
   io.on('connection', (socket: AuthenticatedSocket) => {
-    if (!socket.user) {
-      socket.disconnect();
-      return;
+    // Guest connections are allowed - no forced disconnect for unauthenticated users
+
+    if (socket.user) {
+      logger.info({ userId: socket.user.id, socketId: socket.id }, 'Socket connected');
+    } else {
+      logger.info({ socketId: socket.id }, 'Anonymous socket connected');
     }
 
-    logger.info({ userId: socket.user.id, socketId: socket.id }, 'Socket connected');
-
-    // Handle joining outlet rooms
+    // Handle joining outlet rooms (requires authentication)
     socket.on(
       'join:outlet',
       async (
@@ -158,6 +164,7 @@ export function initializeSocketServer(httpServer: HttpServer): Server {
         callback?: (response: { success: boolean; error?: string }) => void,
       ) => {
         try {
+          // Require authentication for outlet rooms
           if (!socket.user || !socket.user.organization_id) {
             callback?.({ success: false, error: 'User must belong to an organization' });
             return;
@@ -229,7 +236,7 @@ export function initializeSocketServer(httpServer: HttpServer): Server {
       },
     );
 
-    // Handle joining session room (for guests)
+    // Handle joining session room (for guests - public)
     socket.on(
       'join:session',
       async (
@@ -282,7 +289,8 @@ export function initializeSocketServer(httpServer: HttpServer): Server {
     );
 
     socket.on('disconnect', (reason) => {
-      logger.info({ userId: socket.user?.id, socketId: socket.id, reason }, 'Socket disconnected');
+      const userId = socket.user?.id;
+      logger.info({ userId, socketId: socket.id, reason }, 'Socket disconnected');
     });
   });
 

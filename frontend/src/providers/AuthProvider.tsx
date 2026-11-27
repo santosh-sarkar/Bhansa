@@ -1,26 +1,30 @@
 'use client'
 
 import { useAuth } from '@/features/auth/controllers/useAuth'
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { routes } from '@/config/routes'
-import { SocketProvider, connectSocket, disconnectSocket } from '@/lib/socket'
+import { SocketProvider, connectSocket, disconnectSocket, connectGuestSocket } from '@/lib/socket'
+import { tokenStore } from '@/lib/tokenStore'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, refreshAuth } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const wasAuthenticated = useRef(false)
 
-  // Manage socket connection based on auth state
+  // Manage socket connection based on auth state transitions
   useEffect(() => {
     if (isAuthenticated) {
       connectSocket()
-    } else {
+      wasAuthenticated.current = true
+    } else if (wasAuthenticated.current) {
+      // Only disconnect if we were previously authenticated (avoid tearing down guest connection)
       disconnectSocket()
-    }
-    return () => {
-      // Don't disconnect on unmount - let page navigation handle it
-      // Socket persists across page navigations
+      wasAuthenticated.current = false
+    } else {
+      // Guest - ensure guest socket is connected for session rooms
+      connectGuestSocket()
     }
   }, [isAuthenticated])
 
@@ -32,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     // If we have a token but not authenticated, try to refresh
-    const hasToken = document.cookie.includes('access_token=')
+    const hasToken = !!tokenStore.accessToken
     if (hasToken && !isLoading) {
       refreshAuth()
     }

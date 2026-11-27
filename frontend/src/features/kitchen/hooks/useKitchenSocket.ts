@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { getSocket } from '@/lib/socket'
+import { getSocket, joinOutlet, leaveOutlet } from '@/lib/socket'
 
 export function useKitchenSocket(outletId: string | undefined) {
   const queryClient = useQueryClient()
@@ -16,8 +16,12 @@ export function useKitchenSocket(outletId: string | undefined) {
 
     const s = getSocket()
 
-    // Join the outlet kitchen room
-    s.emit('join:outlet', { outletId, role: 'kitchen' })
+    // Join the outlet kitchen room (server determines role from user's assignments)
+    joinOutlet(outletId, (response: { success: boolean; error?: string }) => {
+      if (!response.success) {
+        console.error('[KitchenSocket] Failed to join outlet:', response.error)
+      }
+    })
 
     // Event handlers
     const handleOrderConfirmed = (data: { orderId: string; items: Array<{ menuItemId: string; name: string; quantity: number }>; createdAt: string }) => {
@@ -52,7 +56,7 @@ export function useKitchenSocket(outletId: string | undefined) {
       s.off('item:cancelled', handleItemCancelled)
       s.off('item:availability_changed', handleItemAvailabilityChanged)
       s.off('stock:low', handleLowStock)
-      s.emit('leave:outlet', { outletId, role: 'kitchen' })
+      leaveOutlet(outletId)
     }
   }, [outletId, invalidateKitchen])
 }

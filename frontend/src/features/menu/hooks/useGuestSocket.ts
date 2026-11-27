@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { onOrderRejected, onOrderStatusChanged, onItemCancelled, joinSession, leaveSession } from '@/lib/socket'
+import { onOrderRejected, onOrderStatusChanged, onItemCancelled, joinSession, leaveSession, connectGuestSocket } from '@/lib/socket'
 
 export function useGuestSocket(sessionId: string | undefined) {
   const queryClient = useQueryClient()
@@ -14,8 +14,15 @@ export function useGuestSocket(sessionId: string | undefined) {
   useEffect(() => {
     if (!sessionId) return
 
-    // Join the session room
-    joinSession(sessionId)
+    // Ensure guest socket is connected for session rooms
+    connectGuestSocket()
+
+    // Join the session room with error handling
+    joinSession(sessionId, (response: { success: boolean; error?: string }) => {
+      if (!response.success) {
+        console.error('[GuestSocket] Failed to join session:', response.error)
+      }
+    })
 
     // Listen for order rejected
     const offRejected = onOrderRejected((data) => {

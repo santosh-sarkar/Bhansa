@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
+import { useQueryClient } from '@tanstack/react-query'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,6 @@ import { CardFooter, CardHeader, CardTitle, CardDescription } from '@/components
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { routes } from '@/config/routes'
 import { api } from '@/lib/apiClient'
-import { useAuthStore } from '@/store/authStore'
 import { tokenStore } from '@/lib/tokenStore'
 import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,8 +29,8 @@ type LoginForm = z.infer<typeof loginSchema>
 function LoginFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
   const redirect = searchParams.get('redirect') || routes.dashboard
-  const { setUser } = useAuthStore()
 
   const [isLoading, setIsLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
@@ -60,10 +60,10 @@ function LoginFormContent() {
         tokenStore.setTokens({ accessToken: result.data.accessToken })
       }
 
-      // Login successful - refresh_token cookie is set by backend
-      // router.refresh() will trigger AuthProvider to fetch /auth/me and populate full user state
-      router.push(redirect)
-      router.refresh()
+      // Refresh the cached auth state so the dashboard guard sees the session
+      await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+
+      router.replace(redirect)
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Login failed')
     } finally {
