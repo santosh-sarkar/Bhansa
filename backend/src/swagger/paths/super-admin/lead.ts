@@ -34,7 +34,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Leads'],
   summary: 'List all custom plan leads',
   description: 'Returns paginated list of custom plan leads with optional filter by handled status. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: listLeadsQuerySchema.shape.query },
   responses: {
     200: {
@@ -56,7 +56,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Leads'],
   summary: 'Get lead by ID',
   description: 'Returns detailed lead information. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: leadIdSchema.shape.params },
   responses: {
     200: successResponse('Lead details', leadSchema),
@@ -72,7 +72,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Leads'],
   summary: 'Mark lead as handled',
   description: 'Marks a custom plan lead as handled. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: leadIdSchema.shape.params },
   responses: {
     200: successResponse('Lead marked as handled', leadSchema),

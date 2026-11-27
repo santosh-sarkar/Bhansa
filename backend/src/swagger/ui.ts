@@ -10,7 +10,7 @@ swaggerUiRouter.get('/docs.json', (_req, res) => {
 });
 
 swaggerUiRouter.use(
-  '/docs',
+  '/api-docs',
   swaggerUi.serve,
   swaggerUi.setup(undefined, {
     customSiteTitle: 'Bansa API Documentation',

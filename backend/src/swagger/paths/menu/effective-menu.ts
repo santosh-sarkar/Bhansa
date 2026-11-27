@@ -37,7 +37,7 @@ registry.registerPath({
     'Respects is_available and auto_unavailable from outlet overrides. ' +
     'Requires authentication and valid X-Outlet-Id header. ' +
     'Accessible by any staff member assigned to the outlet (Owner, Manager, Waiter, Kitchen).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('Effective menu', effectiveMenuSchema),
     400: errorResponse('Validation error (missing or invalid X-Outlet-Id)'),

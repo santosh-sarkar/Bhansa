@@ -91,7 +91,7 @@ registry.registerPath({
   tags: ['Super Admin'],
   summary: 'List all organizations',
   description: 'Returns paginated list of all organizations with filters. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: listOrganizationsSchema.shape.query },
   responses: {
     200: {
@@ -113,7 +113,7 @@ registry.registerPath({
   tags: ['Super Admin'],
   summary: 'Get organization details',
   description: 'Returns detailed organization information including outlets, staff, and subscription. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: z.object({ id: z.string().uuid() }) },
   responses: {
     200: successResponse('Organization details', organizationDetailSchema),
@@ -129,7 +129,7 @@ registry.registerPath({
   tags: ['Super Admin'],
   summary: 'Suspend organization',
   description: 'Sets organization status to suspended. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: z.object({ id: z.string().uuid() }) },
   responses: {
     200: successResponse('Organization suspended', successOnlySchema),
@@ -146,7 +146,7 @@ registry.registerPath({
   tags: ['Super Admin'],
   summary: 'Reactivate organization',
   description: 'Sets organization status to active. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: z.object({ id: z.string().uuid() }) },
   responses: {
     200: successResponse('Organization reactivated', successOnlySchema),
@@ -163,7 +163,7 @@ registry.registerPath({
   tags: ['Super Admin'],
   summary: 'Delete organization (soft delete)',
   description: 'Soft deletes organization by setting deleted_at and suspending. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: z.object({ id: z.string().uuid() }) },
   responses: {
     200: successResponse('Organization deleted', successOnlySchema),

@@ -50,7 +50,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Subscriptions'],
   summary: 'List all subscriptions',
   description: 'Returns all subscriptions with organization and plan details. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('Subscriptions list', z.array(subscriptionListSchema)),
     401: errorResponse('Unauthenticated'),
@@ -64,7 +64,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Subscriptions'],
   summary: 'Get subscription by ID',
   description: 'Returns detailed subscription information. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: subscriptionIdSchema.shape.params },
   responses: {
     200: successResponse('Subscription details', subscriptionDetailSchema),
@@ -80,7 +80,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Subscriptions'],
   summary: 'Update subscription overrides',
   description: 'Updates subscription limit overrides (max outlets, staff, menu items). Set to null for unlimited. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
     body: {
@@ -110,7 +110,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Subscriptions'],
   summary: 'Extend trial period',
   description: 'Extends the trial period for a subscription. Only allowed for subscriptions in trialing status. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
     body: {
@@ -138,7 +138,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Subscriptions'],
   summary: 'Change subscription plan',
   description: 'Changes the plan for a subscription. Optionally updates current_period_end. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
     body: {

@@ -40,7 +40,7 @@ registry.registerPath({
   summary: 'Record cash payment for a bill',
   description:
     'Records a cash payment for a bill. Updates bill status to paid, closes session, frees table, and completes orders. Requires payment.record permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
     body: {
@@ -63,7 +63,7 @@ registry.registerPath({
   tags: ['Payments'],
   summary: 'Get payment by ID',
   description: 'Returns detailed payment information. Requires payment.record permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: z.object({ id: z.string().uuid() }) },
   responses: {
     200: successResponse('Payment details', paymentDetailSchema),
@@ -79,7 +79,7 @@ registry.registerPath({
   tags: ['Payments'],
   summary: 'List payments',
   description: 'Returns paginated list of payments with filters. Requires payment.record permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: listPaymentsSchema.shape.query },
   responses: {
     200: {

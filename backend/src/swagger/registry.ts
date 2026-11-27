@@ -8,11 +8,18 @@ extendZodWithOpenApi(z);
 
 export const registry = new OpenAPIRegistry();
 
+registry.registerComponent('securitySchemes', 'bearerAuth', {
+  type: 'http',
+  scheme: 'bearer',
+  bearerFormat: 'JWT',
+  description: 'JWT access token in Authorization header',
+});
+
 registry.registerComponent('securitySchemes', 'cookieAuth', {
   type: 'apiKey',
   in: 'cookie',
   name: 'access_token',
-  description: 'JWT access token in httpOnly cookie',
+  description: 'JWT access token in httpOnly cookie (legacy)',
 });
 
 registry.registerComponent('securitySchemes', 'guestAuth', {

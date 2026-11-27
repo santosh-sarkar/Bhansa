@@ -31,7 +31,7 @@ registry.registerPath({
   summary: 'List stock movements',
   description:
     'Returns paginated list of stock movements for an outlet with optional filters (ingredient, type, date range). Requires inventory.view permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: outletIdParam,
     query: listStockMovementsSchema.shape.query,

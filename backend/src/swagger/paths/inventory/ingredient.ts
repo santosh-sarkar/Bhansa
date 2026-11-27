@@ -52,7 +52,7 @@ registry.registerPath({
   summary: 'List ingredients',
   description:
     'Returns paginated list of ingredients for the organization. Requires inventory.manage permission or organization-wide access (Owner).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     query: listIngredientsSchema.shape.query,
   },
@@ -77,7 +77,7 @@ registry.registerPath({
   summary: 'Get ingredient details',
   description:
     'Returns ingredient details with its outlet stock. Requires inventory.manage permission or organization-wide access (Owner).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: ingredientIdSchema.shape.params,
   },
@@ -96,7 +96,7 @@ registry.registerPath({
   summary: 'Create a new ingredient',
   description:
     'Creates a new ingredient in the organization. Requires inventory.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: { 'application/json': { schema: createIngredientSchema.shape.body } },
@@ -118,7 +118,7 @@ registry.registerPath({
   summary: 'Update ingredient',
   description:
     'Updates ingredient name, unit, default cost, or active status. Requires inventory.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: ingredientIdSchema.shape.params,
     body: {
@@ -142,7 +142,7 @@ registry.registerPath({
   summary: 'Delete ingredient',
   description:
     'Soft deletes an ingredient (sets is_active=false). Only allowed if ingredient has no outlet stock or recipe items. Requires inventory.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: ingredientIdSchema.shape.params,
   },

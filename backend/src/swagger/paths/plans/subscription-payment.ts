@@ -56,7 +56,7 @@ registry.registerPath({
   description:
     'Owner submits a payment reference (e.g., bank transfer reference) for subscription renewal. ' +
     'Creates a pending payment that requires Super Admin approval. Requires billing.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
@@ -89,7 +89,7 @@ registry.registerPath({
   description:
     'Super Admin approves or rejects a submitted subscription payment. ' +
     'On approval, extends the subscription period. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
     body: {
@@ -113,7 +113,7 @@ registry.registerPath({
   tags: ['Subscription', 'Payments'],
   summary: 'Get subscription payment by ID',
   description: 'Returns subscription payment details. Owner sees their own; Super Admin sees all. Requires billing.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: z.object({ id: z.string().uuid() }) },
   responses: {
     200: successResponse('Subscription payment details', subscriptionPaymentDetailSchema),
@@ -129,7 +129,7 @@ registry.registerPath({
   tags: ['Subscription', 'Payments'],
   summary: 'List subscription payments',
   description: 'Returns paginated list of subscription payments. Owner sees their organization; Super Admin sees all. Requires billing.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: listSubscriptionPaymentsSchema.shape.query },
   responses: {
     200: {

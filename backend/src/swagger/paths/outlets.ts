@@ -56,7 +56,7 @@ registry.registerPath({
   summary: 'List outlets the user can access',
   description:
     'Returns paginated list of outlets the authenticated user has access to. Owner sees all organization outlets. Manager/Waiter/Kitchen see only assigned outlets.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     query: listOutletsSchema.shape.query,
   },
@@ -81,7 +81,7 @@ registry.registerPath({
   summary: 'Get outlet details',
   description:
     'Returns outlet details. User must have an assignment to this outlet or be organization-wide (Owner).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: outletIdSchema.shape.params,
   },
@@ -100,7 +100,7 @@ registry.registerPath({
   summary: 'Create a new outlet',
   description:
     'Creates a new outlet in the organization. Only organization-wide staff (Owner) can create. Plan-gated by max_outlets limit.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     body: {
@@ -124,7 +124,7 @@ registry.registerPath({
   summary: 'Update outlet profile and settings',
   description:
     'Updates outlet details. Requires tables.manage permission at the outlet or organization-wide access (Owner).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: outletIdSchema.shape.params,
     body: {
@@ -149,7 +149,7 @@ registry.registerPath({
   summary: 'Deactivate outlet',
   description:
     'Deactivates an outlet (blocks new orders, keeps history). Only organization-wide staff (Owner) can deactivate.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: outletIdSchema.shape.params,
   },
@@ -168,7 +168,7 @@ registry.registerPath({
   summary: 'Save last active outlet',
   description:
     'Saves the last active outlet for the current user. Owner can set any outlet in their organization. Manager can only set outlets they are assigned to.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {

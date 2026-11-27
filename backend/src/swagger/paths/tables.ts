@@ -39,7 +39,7 @@ registry.registerPath({
   summary: 'List tables for an outlet',
   description:
     'Returns paginated list of tables for the outlet. Requires tables.manage permission or outlet access.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     params: z.object({ outletId: z.string().uuid() }),
@@ -65,7 +65,7 @@ registry.registerPath({
   tags: ['Tables'],
   summary: 'Get table details',
   description: 'Returns table details including QR token and status.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     params: tableIdSchema.shape.params,
@@ -84,7 +84,7 @@ registry.registerPath({
   tags: ['Tables'],
   summary: 'Create a new table',
   description: 'Creates a new table with a generated QR token. Requires tables.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     params: z.object({ outletId: z.string().uuid() }),
@@ -107,7 +107,7 @@ registry.registerPath({
   tags: ['Tables'],
   summary: 'Update table',
   description: 'Updates table label, seats, or active status. Requires tables.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     params: tableIdSchema.shape.params,
@@ -131,7 +131,7 @@ registry.registerPath({
   tags: ['Tables'],
   summary: 'Deactivate table',
   description: 'Deactivates a table (soft delete). Requires tables.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     params: tableIdSchema.shape.params,
@@ -150,7 +150,7 @@ registry.registerPath({
   tags: ['Tables'],
   summary: 'Regenerate QR token for table',
   description: 'Generates a new QR token for the table. Requires tables.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     params: tableIdSchema.shape.params,
@@ -170,7 +170,7 @@ registry.registerPath({
   summary: 'Get QR code image for table',
   description:
     'Returns a PNG image of the QR code for the table. The QR code contains the table token.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     params: tableIdSchema.shape.params,

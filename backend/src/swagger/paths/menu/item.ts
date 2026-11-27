@@ -80,7 +80,7 @@ registry.registerPath({
   summary: 'List menu items',
   description:
     'Returns paginated list of menu items for the organization. Supports filtering by category, active status, vegetarian, and search. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     query: listMenuItemsSchema.shape.query,
   },
@@ -105,7 +105,7 @@ registry.registerPath({
   summary: 'Get menu item details',
   description:
     'Returns menu item details with options and outlet overrides. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemIdSchema.shape.params,
   },
@@ -124,7 +124,7 @@ registry.registerPath({
   summary: 'Create a new menu item',
   description:
     'Creates a new menu item in the organization. Requires menu.edit permission. Plan-gated by max_menu_items limit.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
@@ -148,7 +148,7 @@ registry.registerPath({
   tags: ['Menu'],
   summary: 'Update menu item',
   description: 'Updates menu item fields. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemIdSchema.shape.params,
     body: {
@@ -172,7 +172,7 @@ registry.registerPath({
   summary: 'Delete menu item',
   description:
     'Soft deletes a menu item (sets is_active=false and deleted_at). Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemIdSchema.shape.params,
   },

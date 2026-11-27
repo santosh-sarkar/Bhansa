@@ -80,7 +80,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Platform Stats'],
   summary: 'Get platform-wide statistics',
   description: 'Returns comprehensive platform statistics including organizations, subscriptions, plans, outlets, staff, leads, and revenue. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('Platform statistics', platformStatsSchema),
     401: errorResponse('Unauthenticated'),

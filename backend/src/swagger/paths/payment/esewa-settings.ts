@@ -22,7 +22,7 @@ registry.registerPath({
   tags: ['Payments', 'Outlets'],
   summary: 'Get eSewa settings for an outlet',
   description: 'Returns eSewa configuration including encrypted secret key. Requires billing.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: outletIdParam },
   responses: {
     200: successResponse('eSewa settings', esewaSettingsDetailSchema),
@@ -38,7 +38,7 @@ registry.registerPath({
   tags: ['Payments', 'Outlets'],
   summary: 'Create or update eSewa settings for an outlet',
   description: 'Configures eSewa payment settings. Secret key is encrypted before storage. Requires billing.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: outletIdParam,
     body: {
@@ -68,7 +68,7 @@ registry.registerPath({
   tags: ['Payments', 'Outlets'],
   summary: 'Delete eSewa settings for an outlet',
   description: 'Removes eSewa configuration. Requires billing.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: outletIdParam },
   responses: {
     200: successResponse('eSewa settings deleted', z.object({ success: z.literal(true) })),

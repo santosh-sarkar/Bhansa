@@ -25,7 +25,7 @@ registry.registerPath({
   summary: 'Request a custom plan',
   description:
     'Submits a custom plan request (lead) with contact details, desired outlet count, and an optional message. The organization is derived from the authenticated user.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     body: {
@@ -54,7 +54,7 @@ registry.registerPath({
   summary: 'Get current subscription with usage versus limits',
   description:
     'Returns the active subscription details including plan, status, trial/grace dates, override limits, and current usage versus effective limits for outlets, staff, and menu items.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { headers: outletHeaders },
   responses: {
     200: successResponse(

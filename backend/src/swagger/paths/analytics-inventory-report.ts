@@ -97,7 +97,7 @@ registry.registerPath({
   summary: 'Get inventory report for an outlet',
   description:
     'Returns comprehensive inventory report including stock levels, wastage, and usage. Requires analytics.view permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ outletId: z.string().uuid() }),
     query: inventoryFiltersSchema.shape.query,
@@ -117,7 +117,7 @@ registry.registerPath({
   summary: 'Get consolidated inventory report across all outlets',
   description:
     'Returns consolidated inventory report across all accessible outlets. Requires analytics.view permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: inventoryFiltersSchema.shape.query },
   responses: {
     200: successResponse('Consolidated inventory report', consolidatedReportSchema),

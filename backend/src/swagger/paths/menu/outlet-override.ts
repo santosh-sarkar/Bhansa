@@ -23,7 +23,7 @@ registry.registerPath({
   summary: 'Get outlet overrides for a menu item',
   description:
     'Returns outlet-specific price overrides and availability for a menu item. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
   },
@@ -54,7 +54,7 @@ registry.registerPath({
     'Bulk upserts outlet-specific price overrides and availability for a menu item. ' +
     'Owner can update overrides for any outlet in organization. Manager can only update for assigned outlets. ' +
     'Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
     body: {
@@ -114,7 +114,7 @@ registry.registerPath({
     'Toggles the availability (is_available) of a menu item for a specific outlet. ' +
     'Owner can toggle for any outlet in organization. Manager can toggle for assigned outlets. ' +
     'Kitchen can toggle for assigned outlets. Requires item.mark_unavailable permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
     body: {

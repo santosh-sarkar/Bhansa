@@ -48,7 +48,7 @@ registry.registerPath({
   summary: 'List menu categories',
   description:
     'Returns paginated list of menu categories for the organization. Requires menu.edit permission or organization-wide access (Owner).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     query: listCategoriesSchema.shape.query,
   },
@@ -73,7 +73,7 @@ registry.registerPath({
   summary: 'Get category details',
   description:
     'Returns category details with its menu items. Requires menu.edit permission or organization-wide access (Owner).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: categoryIdSchema.shape.params,
   },
@@ -91,7 +91,7 @@ registry.registerPath({
   tags: ['Menu'],
   summary: 'Create a new category',
   description: 'Creates a new menu category in the organization. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
@@ -115,7 +115,7 @@ registry.registerPath({
   summary: 'Update category',
   description:
     'Updates category name, sort_order, or active status. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: categoryIdSchema.shape.params,
     body: {
@@ -139,7 +139,7 @@ registry.registerPath({
   summary: 'Delete category',
   description:
     'Soft deletes a category (sets is_active=false). Only allowed if category has no active menu items. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: categoryIdSchema.shape.params,
   },

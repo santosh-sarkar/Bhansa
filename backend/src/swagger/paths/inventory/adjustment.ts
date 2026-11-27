@@ -24,7 +24,7 @@ registry.registerPath({
   summary: 'Record a stock adjustment',
   description:
     'Records a stock adjustment (positive or negative) for an ingredient at an outlet. Requires inventory.adjust permission (Owner, Manager, Kitchen).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: adjustmentSchema.shape.params,
     body: {
@@ -47,7 +47,7 @@ registry.registerPath({
   summary: 'Record stock wastage',
   description:
     'Records stock wastage for an ingredient at an outlet. Requires inventory.wastage permission (Owner, Manager, Kitchen).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: wastageSchema.shape.params,
     body: {

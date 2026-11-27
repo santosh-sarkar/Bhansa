@@ -58,7 +58,7 @@ registry.registerPath({
   summary: 'List outlet stock',
   description:
     'Returns paginated list of stock for an outlet with optional low stock filter. Requires inventory.view permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: outletIdParam,
     query: listOutletStockSchema.shape.query,
@@ -85,7 +85,7 @@ registry.registerPath({
   summary: 'Get outlet stock detail',
   description:
     'Returns stock detail for a specific ingredient at an outlet with movement history. Requires inventory.view permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: outletStockIdParam,
   },
@@ -104,7 +104,7 @@ registry.registerPath({
   summary: 'Update low threshold',
   description:
     'Updates the low stock threshold for an ingredient at an outlet. Requires inventory.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: outletStockIdParam,
     body: {
@@ -127,7 +127,7 @@ registry.registerPath({
   summary: 'Bulk update low thresholds',
   description:
     'Bulk updates low stock thresholds for multiple ingredients at an outlet. Requires inventory.manage permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: outletIdParam,
     body: {

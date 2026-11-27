@@ -86,7 +86,7 @@ registry.registerPath({
   description:
     'Returns summary analytics including revenue, orders, items sold, and payment stats. ' +
     'Requires analytics.view permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: analyticsFiltersSchema.shape.query },
   responses: {
     200: successResponse('Analytics summary', analyticsSummarySchema),
@@ -102,7 +102,7 @@ registry.registerPath({
   summary: 'Get revenue by day',
   description:
     'Returns daily revenue for the specified period. Requires analytics.view permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: analyticsFiltersSchema.shape.query },
   responses: {
     200: successResponse('Revenue by day', z.array(revenueByDaySchema)),
@@ -118,7 +118,7 @@ registry.registerPath({
   summary: 'Get top selling items',
   description:
     'Returns top selling items by quantity sold. Requires analytics.view permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: topItemsFiltersSchema.shape.query },
   responses: {
     200: successResponse('Top items', z.array(topItemSchema)),
@@ -134,7 +134,7 @@ registry.registerPath({
   summary: 'Get peak hours',
   description:
     'Returns order and revenue stats by hour of day. Requires analytics.view permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: analyticsFiltersSchema.shape.query },
   responses: {
     200: successResponse('Peak hours', z.array(peakHourSchema)),

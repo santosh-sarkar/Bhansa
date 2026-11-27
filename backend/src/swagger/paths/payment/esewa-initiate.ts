@@ -4,11 +4,17 @@ import { registry } from '@/swagger';
 
 import { errorResponse, successResponse } from '@/swagger/schemas/common';
 
+const formFieldsSchema = z.record(z.string(), z.string()).openapi({
+  type: 'object',
+  additionalProperties: { type: 'string' },
+  description: 'eSewa form fields as key-value pairs',
+});
+
 const esewaInitiateResultSchema = z.object({
   payment_id: z.string().uuid(),
   transaction_uuid: z.string(),
   form_url: z.string().url(),
-  form_fields: z.record(z.string(), z.string()),
+  form_fields: formFieldsSchema,
 });
 
 const verifyEsewaResponseSchema = z.object({
@@ -16,6 +22,15 @@ const verifyEsewaResponseSchema = z.object({
   status: z.enum(['succeeded', 'failed']),
   amount: z.string(),
 });
+
+const verifyEsewaSchema = z.object({
+  transaction_uuid: z.string(),
+  status: z.string(),
+  total_amount: z.string(),
+  ref_id: z.string().optional(),
+  signed_field_names: z.string(),
+  signature: z.string(),
+}).passthrough();
 
 registry.registerPath({
   method: 'post',
@@ -25,7 +40,7 @@ registry.registerPath({
   description:
     'Creates a pending payment and returns signed form fields for eSewa redirect. ' +
     'Guest can use this to pay their bill via eSewa. No authentication required (guest session).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ billId: z.string().uuid() }),
     body: {
@@ -53,14 +68,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: z.object({
-            transaction_uuid: z.string(),
-            status: z.string(),
-            total_amount: z.string(),
-            ref_id: z.string().optional(),
-            signed_field_names: z.string(),
-            signature: z.string(),
-          }).passthrough(),
+          schema: verifyEsewaSchema,
         },
       },
     },

@@ -99,7 +99,7 @@ registry.registerPath({
   description:
     'Returns the current session details, table, outlet, and all orders for the session identified by the guest token cookie. ' +
     'Requires the guest_token cookie set by POST /api/v1/public/sessions.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('Current session', currentSessionResponseSchema),
     404: errorResponse('No active session'),
@@ -114,7 +114,7 @@ registry.registerPath({
   description:
     'Requests a bill for the current guest session, changing session status to bill_requested and table status to needs_bill. ' +
     'Requires the guest_token cookie set by POST /api/v1/public/sessions.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('Bill requested', billRequestResponseSchema),
     400: errorResponse('Validation error or bill already requested'),

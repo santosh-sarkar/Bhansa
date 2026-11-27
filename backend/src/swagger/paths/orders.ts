@@ -159,7 +159,7 @@ registry.registerPath({
   tags: ['Orders'],
   summary: 'List orders',
   description: 'Returns paginated list of orders with filters. Requires order.create permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: listOrdersSchema.shape.query },
   responses: {
     200: paginatedResponse('Orders list', orderListItemSchema),
@@ -175,7 +175,7 @@ registry.registerPath({
   summary: 'Place order for a table (auto-confirmed)',
   description:
     'Creates a staff order for a table with auto-confirmed status (placed). Waiters and Managers can place orders on behalf of guests. Requires order.create permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: { content: { 'application/json': { schema: createStaffOrderSchema.shape.body } } },
   },
@@ -221,7 +221,7 @@ registry.registerPath({
   tags: ['Orders'],
   summary: 'Get order details',
   description: 'Returns order details with items and payments. Requires order.create permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: orderIdSchema.shape.params },
   responses: {
     200: successResponse('Order details', z.object({ order: orderDetailSchema })),
@@ -238,7 +238,7 @@ registry.registerPath({
   summary: 'Confirm pending guest order',
   description:
     'Confirms a pending_confirmation order, changing status to placed. Requires order.update_status permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: orderIdSchema.shape.params },
   responses: {
     200: successResponse('Order confirmed', z.object({ order: orderDetailSchema })),
@@ -256,7 +256,7 @@ registry.registerPath({
   summary: 'Reject pending guest order',
   description:
     'Rejects a pending_confirmation order with a reason, changing status to cancelled. Requires order.update_status permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: orderIdSchema.shape.params,
     body: { content: { 'application/json': { schema: rejectOrderSchema.shape.body } } },
@@ -278,7 +278,7 @@ registry.registerPath({
   summary: 'Update order status',
   description:
     'Updates order status. Valid transitions per PD-009. Requires order.update_status permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: orderIdSchema.shape.params,
     body: { content: { 'application/json': { schema: updateOrderStatusSchema.shape.body } } },
@@ -300,7 +300,7 @@ registry.registerPath({
   summary: 'Update order item status',
   description:
     'Updates order item status (placed -> preparing -> ready -> served). Requires order.update_status permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: orderIdSchema.shape.params,
     body: { content: { 'application/json': { schema: updateOrderItemStatusSchema.shape.body } } },
@@ -321,7 +321,7 @@ registry.registerPath({
   summary: 'Cancel order',
   description:
     'Cancels an order with a reason. Enforces PD-008 cancellation rules. Requires order.cancel permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: orderIdSchema.shape.params,
     body: { content: { 'application/json': { schema: cancelOrderSchema.shape.body } } },
@@ -343,7 +343,7 @@ registry.registerPath({
   summary: 'Get kitchen board',
   description:
     'Returns live kitchen board with orders grouped by status: placed, preparing, ready, served. Requires order.create permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: kitchenBoardSchema.shape.query },
   responses: {
     200: successResponse('Kitchen board', z.object({ orders: z.array(kitchenOrderSchema) })),
@@ -376,7 +376,7 @@ registry.registerPath({
   summary: 'Close session',
   description:
     'Waiter/Manager closes session, completes all orders, and frees the table. Requires order.create permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: sessionIdSchema.shape.params },
   responses: {
     200: successResponse('Session closed', closeSessionResponseSchema),
@@ -393,7 +393,7 @@ registry.registerPath({
   summary: 'List sessions',
   description:
     'Returns paginated list of sessions with filters. Requires order.create permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: listSessionsSchema.shape.query },
   responses: {
     200: paginatedResponse('Sessions list', sessionListItemSchema),

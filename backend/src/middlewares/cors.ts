@@ -5,7 +5,7 @@ import { env } from '@/config/env';
 const allowedOrigins = [env.FRONTEND_URL];
 
 if (env.NODE_ENV === 'development') {
-  allowedOrigins.push('http://localhost:3000', 'http://localhost:3001');
+  allowedOrigins.push('http://localhost:3000', 'http://localhost:3001', 'http://localhost:4000');
 }
 
 export const corsMiddleware = cors({

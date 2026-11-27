@@ -39,7 +39,7 @@ registry.registerPath({
   summary: 'List recipe items for a menu item',
   description:
     'Returns all ingredients and quantities for a menu item. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemIdParamSchema,
   },
@@ -60,7 +60,7 @@ registry.registerPath({
   tags: ['Menu'],
   summary: 'Get recipe item details',
   description: 'Returns details of a specific recipe item. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: recipeItemIdParamSchema,
   },
@@ -79,7 +79,7 @@ registry.registerPath({
   summary: 'Add ingredient to recipe',
   description:
     'Adds an ingredient with quantity to a menu item recipe. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemIdParamSchema,
     body: {
@@ -103,7 +103,7 @@ registry.registerPath({
   summary: 'Update recipe item quantity',
   description:
     'Updates the quantity of an ingredient in a menu item recipe. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: recipeItemIdParamSchema,
     body: {
@@ -125,7 +125,7 @@ registry.registerPath({
   tags: ['Menu'],
   summary: 'Remove ingredient from recipe',
   description: 'Removes an ingredient from a menu item recipe. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: recipeItemIdParamSchema,
   },
@@ -144,7 +144,7 @@ registry.registerPath({
   summary: 'Bulk upsert recipe',
   description:
     'Replaces all recipe items for a menu item with the provided list. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemIdParamSchema,
     body: {

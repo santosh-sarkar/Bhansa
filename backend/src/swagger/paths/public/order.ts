@@ -50,7 +50,7 @@ registry.registerPath({
     'calculates pricing server-side (including tax and service charge), and creates order with ' +
     'pending_confirmation status. Requires idempotency key to prevent duplicate orders. ' +
     'Requires guest_token cookie from POST /api/v1/public/sessions.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
@@ -75,7 +75,7 @@ registry.registerPath({
   description:
     'Returns order details for the current guest session. Only returns orders belonging to the session ' +
     'identified by the guest_token cookie.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: orderIdSchema.shape.params,
   },

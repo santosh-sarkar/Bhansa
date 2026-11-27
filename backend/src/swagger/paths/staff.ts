@@ -56,7 +56,7 @@ registry.registerPath({
   summary: 'Invite a staff member by email',
   description:
     'Creates a 7-day invitation for an email, role and outlet. Re-inviting the same email revokes the previous pending invitation. Manager cannot grant a role above their own or invite to an outlet they do not manage. Owner invitations are organization-wide.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     body: {
@@ -83,7 +83,7 @@ registry.registerPath({
   summary: 'List staff invitations',
   description:
     'Lists invitations the caller can manage. Owners see every invitation in the organization; Managers see invitations for their assigned outlets only. Expired pending invitations are marked expired first.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { headers: outletHeaders, query: listInvitationsSchema.shape.query },
   responses: {
     200: {
@@ -111,7 +111,7 @@ registry.registerPath({
   summary: 'Revoke a staff invitation',
   description:
     'Revokes a pending invitation the caller can manage. Organization-wide (Owner) invitations can only be revoked by organization-wide staff.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { headers: outletHeaders, params: invitationIdSchema.shape.params },
   responses: {
     200: successResponse('Invitation revoked', z.object({ revoked: z.literal(true) })),
@@ -130,7 +130,7 @@ registry.registerPath({
   summary: 'List staff',
   description:
     'Lists staff the caller can manage. Owners see every staff member in the organization; Managers see anyone assigned to an outlet they manage. Includes inactive staff and every role/outlet assignment. Supports status and role filters with pagination.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { headers: outletHeaders, query: listStaffSchema.shape.query },
   responses: {
     200: {
@@ -158,7 +158,7 @@ registry.registerPath({
   summary: 'Change a staff role',
   description:
     'Changes the role on the staff member assignments. Owner is organization-wide; demoting an Owner places them at X-Outlet-Id. Waiter and Kitchen keep a single assignment. Managers cannot change Owners, staff outside their outlets, or grant a role above their own. The last active Owner cannot be demoted.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     params: staffIdSchema.shape.params,
@@ -181,7 +181,7 @@ registry.registerPath({
   summary: 'Set staff outlet assignments',
   description:
     'Replaces the outlet assignments of a staff member. Owner targets are rejected (Owner assignments are organization-wide). Waiter and Kitchen must receive exactly one outlet; Manager may receive many. Managers can only assign outlets they manage and never manage Owners.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     headers: outletHeaders,
     params: staffIdSchema.shape.params,
@@ -203,7 +203,7 @@ registry.registerPath({
   summary: 'Deactivate a staff member',
   description:
     'Sets the account inactive and revokes every refresh token. Nobody can deactivate themselves, a Manager can never deactivate an Owner, and the last active Owner cannot be deactivated.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { headers: outletHeaders, params: staffIdSchema.shape.params },
   responses: {
     200: successResponse('Staff member deactivated', z.object({ deactivated: z.literal(true) })),

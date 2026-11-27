@@ -35,7 +35,7 @@ registry.registerPath({
   summary: 'List menu item options',
   description:
     'Returns paginated list of options (variants/addons) for a menu item. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemIdParam,
     query: listMenuItemOptionsSchema.shape.query,
@@ -61,7 +61,7 @@ registry.registerPath({
   tags: ['Menu'],
   summary: 'Get option details',
   description: 'Returns option details. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemOptionIdSchema.shape.params,
   },
@@ -80,7 +80,7 @@ registry.registerPath({
   summary: 'Create a new option',
   description:
     'Creates a new option (variant or addon) for a menu item. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemIdParam,
     body: {
@@ -106,7 +106,7 @@ registry.registerPath({
   summary: 'Update option',
   description:
     'Updates option kind, name, price_delta, or active status. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemOptionIdSchema.shape.params,
     body: {
@@ -129,7 +129,7 @@ registry.registerPath({
   tags: ['Menu'],
   summary: 'Delete option',
   description: 'Soft deletes an option (sets is_active=false). Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: menuItemOptionIdSchema.shape.params,
   },

@@ -88,7 +88,7 @@ registry.registerPath({
   description:
     'Generates a bill for the specified session, calculating totals including tax and service charge. ' +
     'Only allowed for sessions with completed orders. Requires payment.record permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
@@ -112,7 +112,7 @@ registry.registerPath({
   summary: 'List bills',
   description:
     'Returns paginated list of bills with filters. Requires payment.record permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: listBillsSchema.shape.query },
   responses: {
     200: {
@@ -134,7 +134,7 @@ registry.registerPath({
   tags: ['Billing'],
   summary: 'Get bill details',
   description: 'Returns bill details with orders and items. Requires payment.record permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: billIdSchema.shape.params },
   responses: {
     200: successResponse('Bill details', z.object({ bill: billDetailSchema })),
@@ -150,7 +150,7 @@ registry.registerPath({
   tags: ['Billing'],
   summary: 'Get bill invoice PDF',
   description: 'Returns a PDF invoice for the bill. Requires payment.record permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: billIdSchema.shape.params },
   responses: {
     200: {

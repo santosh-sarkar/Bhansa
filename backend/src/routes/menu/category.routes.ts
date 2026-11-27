@@ -17,8 +17,6 @@ import {
   updateCategorySchema,
 } from '@/validations/menu/category.schema';
 
-import './category.docs';
-
 const categoryRouter = Router();
 
 // All routes require authentication

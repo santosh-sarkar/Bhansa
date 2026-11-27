@@ -111,7 +111,7 @@ registry.registerPath({
   description:
     'Returns consolidated analytics across all accessible outlets for organization owners. ' +
     'Includes revenue, orders, items, payments, and inventory summaries. Requires analytics.view permission and Owner role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { query: consolidatedFiltersSchema.shape.query },
   responses: {
     200: successResponse('Consolidated analytics', consolidatedSummarySchema),

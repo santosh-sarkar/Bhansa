@@ -237,7 +237,7 @@ registry.registerPath({
   summary: 'Get current authenticated user',
   description:
     'Returns the current authenticated user with organization, assignments, and permissions.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('Current user data', meResponseSchema),
     401: errorResponse('Unauthenticated'),
@@ -251,7 +251,7 @@ registry.registerPath({
   summary: 'Rotate the refresh token',
   description:
     'Reads the refresh token cookie, rotates it, and returns new access token in body and refresh token in httpOnly cookie. Reusing an already rotated token revokes the whole token family.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('New tokens issued', z.object({
       user: z.object({
@@ -272,7 +272,7 @@ registry.registerPath({
   summary: 'Log out the current session',
   description:
     'Revokes the refresh-token family from the refresh cookie and clears the auth cookies.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('Session ended', z.object({ logged_out: z.literal(true) })),
     401: errorResponse('Unauthenticated'),
@@ -286,7 +286,7 @@ registry.registerPath({
   summary: 'Log out every session',
   description:
     'Revokes all refresh-token families for the authenticated user and clears the auth cookies.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('All sessions ended', z.object({ logged_out: z.literal(true) })),
     401: errorResponse('Unauthenticated'),

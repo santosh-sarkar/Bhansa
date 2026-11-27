@@ -4,6 +4,12 @@ import { registry } from '@/swagger';
 
 import { errorResponse, successResponse } from '@/swagger/schemas/common';
 
+const featuresSchema = z.record(z.string(), z.unknown()).openapi({
+  type: 'object',
+  additionalProperties: true,
+  description: 'Plan features as key-value pairs',
+});
+
 const planDetailSchema = z.object({
   id: z.string().uuid(),
   code: z.string(),
@@ -13,7 +19,7 @@ const planDetailSchema = z.object({
   max_staff: z.number().int().nullable(),
   max_menu_items: z.number().int().nullable(),
   multi_outlet_enabled: z.boolean(),
-  features: z.record(z.string(), z.unknown()),
+  features: featuresSchema,
   is_public: z.boolean(),
   created_at: z.string().datetime(),
   subscription_count: z.number().int().nonnegative(),
@@ -37,6 +43,34 @@ const planIdSchema = z.object({
   params: z.object({ id: z.string().uuid() }),
 });
 
+const createPlanSchema = z.object({
+  body: z.object({
+    code: z.string().min(1).max(32),
+    name: z.string().min(1).max(64),
+    price_monthly: z.string().regex(/^\d+(\.\d{1,2})?$/),
+    max_outlets: z.number().int().nonnegative(),
+    max_staff: z.number().int().nullable(),
+    max_menu_items: z.number().int().nullable(),
+    multi_outlet_enabled: z.boolean(),
+    features: featuresSchema.optional(),
+    is_public: z.boolean(),
+  }),
+});
+
+const updatePlanSchema = z.object({
+  params: z.object({ id: z.string().uuid() }),
+  body: z.object({
+    name: z.string().min(1).max(64).optional(),
+    price_monthly: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
+    max_outlets: z.number().int().nonnegative().optional(),
+    max_staff: z.number().int().nullable().optional(),
+    max_menu_items: z.number().int().nullable().optional(),
+    multi_outlet_enabled: z.boolean().optional(),
+    features: featuresSchema.optional(),
+    is_public: z.boolean().optional(),
+  }),
+});
+
 const successOnlySchema = z.object({ success: z.literal(true) });
 
 registry.registerPath({
@@ -45,7 +79,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Plans'],
   summary: 'List all plans',
   description: 'Returns all plans with subscription counts. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: successResponse('Plans list', z.array(planListItemSchema)),
     401: errorResponse('Unauthenticated'),
@@ -59,7 +93,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Plans'],
   summary: 'Get plan by ID',
   description: 'Returns detailed plan information including subscription count. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: planIdSchema.shape.params },
   responses: {
     200: successResponse('Plan details', planDetailSchema),
@@ -75,22 +109,12 @@ registry.registerPath({
   tags: ['Super Admin', 'Plans'],
   summary: 'Create a new plan',
   description: 'Creates a new subscription plan. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
         'application/json': {
-          schema: z.object({
-            code: z.string().min(1).max(32),
-            name: z.string().min(1).max(64),
-            price_monthly: z.string().regex(/^\d+(\.\d{1,2})?$/),
-            max_outlets: z.number().int().nonnegative(),
-            max_staff: z.number().int().nullable(),
-            max_menu_items: z.number().int().nullable(),
-            multi_outlet_enabled: z.boolean(),
-            features: z.record(z.string(), z.unknown()).optional(),
-            is_public: z.boolean(),
-          }),
+          schema: createPlanSchema.shape.body,
         },
       },
     },
@@ -110,7 +134,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Plans'],
   summary: 'Update a plan',
   description: 'Updates plan details. Code cannot be changed after creation. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ id: z.string().uuid() }),
     body: {
@@ -145,7 +169,7 @@ registry.registerPath({
   tags: ['Super Admin', 'Plans'],
   summary: 'Delete a plan',
   description: 'Deletes a plan. Only allowed if no active subscriptions use it. Requires Super Admin role.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: { params: z.object({ id: z.string().uuid() }) },
   responses: {
     200: successResponse('Plan deleted', successOnlySchema),

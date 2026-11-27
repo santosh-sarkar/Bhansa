@@ -23,7 +23,7 @@ registry.registerPath({
   summary: 'Record a restock',
   description:
     'Records a restock for an ingredient at an outlet, updates stock quantity, and creates a movement record. Requires inventory.restock permission (Owner, Manager).',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: restockSchema.shape.params,
     body: {

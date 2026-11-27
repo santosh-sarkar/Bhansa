@@ -13,6 +13,12 @@ const uploadResultSchema = z.object({
   bytes: z.number().int(),
 });
 
+const fileSchema = z.string().openapi({
+  type: 'string',
+  format: 'binary',
+  description: 'Image file (JPEG, PNG, WebP up to 5MB)',
+});
+
 registry.registerPath({
   method: 'post',
   path: '/api/v1/menu/upload/image',
@@ -20,13 +26,13 @@ registry.registerPath({
   summary: 'Upload menu image to Cloudinary',
   description:
     'Uploads a menu item image to Cloudinary. Accepts JPEG, PNG, and WebP files up to 5MB. Returns the secure URL and metadata. Requires menu.edit permission.',
-  security: [{ cookieAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
         'multipart/form-data': {
           schema: z.object({
-            file: z.instanceof(File),
+            file: fileSchema,
           }),
         },
       },
