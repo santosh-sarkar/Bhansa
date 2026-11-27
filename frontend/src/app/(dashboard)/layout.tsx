@@ -134,19 +134,26 @@ function SidebarNavigation({ filteredNavigation, pathname }: { filteredNavigatio
   )
 }
 
-function OutletRequiredGuard({ children, user, hasPermission, currentOutletId, pathname, theme }: {
+function OutletRequiredGuard({ children, user, hasPermission, hasRole, currentOutletId, pathname, theme }: {
   children: React.ReactNode
   user: AuthUser | null
   hasPermission: (permission: string) => boolean
+  hasRole: (role: string) => boolean
   currentOutletId: string | null
   pathname: string
   theme: 'light' | 'kds'
 }) {
   const router = useRouter()
+  const isSuperAdmin = hasRole('super_admin')
   const canManageOutlets = hasPermission('outlets.manage')
   const hasAssignments = user?.assignments.some((a) => a.isActive && a.outletId) ?? false
   const textColor = theme === 'kds' ? 'text-kds-foreground' : 'text-foreground'
   const mutedColor = theme === 'kds' ? 'text-kds-muted' : 'text-muted-foreground'
+
+  // Super admins don't need outlet assignment on their routes
+  if (isSuperAdmin) {
+    return <>{children}</>
+  }
 
   // Redirect to outlet selection if no outlet selected and user can't manage outlets
   useEffect(() => {
@@ -344,6 +351,7 @@ function RoleLayout({ user, hasPermission, hasRole, logout, getCurrentOutletId, 
             <OutletRequiredGuard
               user={user}
               hasPermission={hasPermission}
+              hasRole={hasRole}
               currentOutletId={currentOutletId}
               pathname={pathname}
               theme={header.theme}
@@ -420,6 +428,7 @@ export default function DashboardLayout({
       <OutletRequiredGuard
         user={user}
         hasPermission={hasPermission}
+        hasRole={hasRole}
         currentOutletId={getCurrentOutletId()}
         pathname={pathname}
         theme="light"
