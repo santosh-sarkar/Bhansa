@@ -6,8 +6,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 
-import './payment.docs';
-
 const paymentRouter = Router();
 
 // Validation schemas (inline)

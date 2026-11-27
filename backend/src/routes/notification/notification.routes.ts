@@ -12,8 +12,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 
-import './notification.docs';
-
 const notificationRouter = Router();
 
 // Validation schemas (inline)

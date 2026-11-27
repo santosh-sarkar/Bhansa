@@ -6,9 +6,13 @@ import { emailWorker } from '@/jobs/email.queue';
 import { trialExpiryWorker, scheduleTrialExpiryJob } from '@/jobs/trialExpiry.queue';
 import { lowStockAlertWorker, scheduleLowStockAlertJob } from '@/jobs/lowStockAlert.queue';
 import { esewaReconcileWorker, scheduleEsewaReconcileJob } from '@/jobs/esewaReconcile.queue';
+import { registerPaths } from '@/swagger';
 import { logger } from '@/lib/logger';
 
 async function start(): Promise<void> {
+  // Register all OpenAPI paths with the registry
+  registerPaths();
+
   await connectRedis();
   logger.info('Redis connected');
 

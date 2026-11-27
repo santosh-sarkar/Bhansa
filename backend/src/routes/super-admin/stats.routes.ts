@@ -4,8 +4,6 @@ import { getPlatformStatsController } from '@/controllers/super-admin/stats.cont
 import { authMiddleware } from '@/middlewares/auth';
 import { requireSuperAdmin } from '@/middlewares/orgPermission';
 
-import './stats.docs';
-
 const superAdminStatsRouter = Router();
 
 // All routes require authentication and Super Admin role

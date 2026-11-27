@@ -11,8 +11,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireOrgPermission, requireSuperAdmin } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 
-import './subscription-payment.docs';
-
 const subscriptionPaymentRouter = Router();
 
 // Validation schemas (inline)

@@ -17,8 +17,6 @@ import {
   bulkUpdateLowThresholdSchema,
 } from '@/validations/inventory/outlet-stock.schema';
 
-import './outlet-stock.docs';
-
 const outletStockRouter = Router({ mergeParams: true });
 
 // Debug middleware

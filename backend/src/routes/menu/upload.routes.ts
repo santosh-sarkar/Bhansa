@@ -5,8 +5,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { multerUpload } from '@/middlewares/multer';
 
-import './upload.docs';
-
 const uploadRouter = Router();
 
 // All routes require authentication

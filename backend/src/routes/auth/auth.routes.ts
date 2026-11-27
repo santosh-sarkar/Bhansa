@@ -24,9 +24,6 @@ import { acceptInviteSchema } from '@/validations/auth/accept-invite.schema';
 import { validate } from '@/middlewares/validate';
 import { authMiddleware } from '@/middlewares/auth';
 
-// Import to register OpenAPI paths
-import './auth.docs';
-
 const authRouter = Router();
 
 authRouter.post('/register', validate({ body: registerSchema.shape.body }), register);

@@ -9,8 +9,6 @@ import { validate } from '@/middlewares/validate';
 import { requestBillSchema, startSessionSchema } from '@/validations/public/public-session.schema';
 import { createRateLimiter } from '@/middlewares/rateLimit';
 
-import './public-session.docs';
-
 const publicSessionRouter = Router();
 
 // Rate limiters for public session endpoints

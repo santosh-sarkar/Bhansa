@@ -28,8 +28,6 @@ import {
   staffIdSchema,
 } from '@/validations/staff/staff.schema';
 
-import './staff.docs';
-
 const staffRouter = Router();
 
 staffRouter.use(authMiddleware, subscriptionGuardMiddleware, outletContextMiddleware);

@@ -12,8 +12,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireSuperAdmin } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 
-import './plan.docs';
-
 const superAdminPlanRouter = Router();
 
 // Validation schemas (inline)

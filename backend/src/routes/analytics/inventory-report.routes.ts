@@ -9,8 +9,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 
-import './inventory-report.docs';
-
 const inventoryReportRouter = Router();
 
 // Validation schemas (inline)

@@ -8,8 +8,6 @@ import { requirePermission } from '@/middlewares/permission';
 import { validate } from '@/middlewares/validate';
 import { customPlanRequestSchema } from '@/validations/plans/custom-plan-request.schema';
 
-import './plans.docs';
-
 const plansRouter = Router();
 
 plansRouter.use(authMiddleware, outletContextMiddleware);

@@ -4,8 +4,6 @@ import { z } from 'zod';
 import { initiateEsewaPaymentController, verifyEsewaPaymentController } from '@/controllers/payment/esewa-initiate.controller';
 import { validate } from '@/middlewares/validate';
 
-import './esewa-initiate.docs';
-
 const esewaInitiateRouter = Router();
 
 // Validation schemas (inline)

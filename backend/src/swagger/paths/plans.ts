@@ -4,6 +4,8 @@ import { registry } from '@/swagger';
 import { customPlanRequestSchema } from '@/validations/plans/custom-plan-request.schema';
 import { subscriptionDetailSchema } from '@/validations/plans/subscription.schema';
 
+import { errorResponse, successResponse } from '@/swagger/schemas/common';
+
 const customPlanRequestResponseSchema = z.object({
   id: z.string().uuid(),
   contact_name: z.string(),
@@ -15,21 +17,6 @@ const customPlanRequestResponseSchema = z.object({
 });
 
 const outletHeaders = z.object({ 'X-Outlet-Id': z.string().uuid() });
-
-const errorSchema = z.object({
-  success: z.literal(false),
-  error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() }),
-});
-
-const successResponse = <T extends z.ZodType>(description: string, data: T) => ({
-  description,
-  content: { 'application/json': { schema: z.object({ success: z.literal(true), data }) } },
-});
-
-const errorResponse = (description: string) => ({
-  description,
-  content: { 'application/json': { schema: errorSchema } },
-});
 
 registry.registerPath({
   method: 'post',

@@ -5,8 +5,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 
-import './consolidated.docs';
-
 const consolidatedRouter = Router();
 
 // Validation schemas (inline)

@@ -11,8 +11,6 @@ import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 import { toggleAvailabilitySchema } from '@/validations/menu/outlet-override.schema';
 
-import './outlet-override.docs';
-
 const outletOverrideRouter = Router();
 
 outletOverrideRouter.use(authMiddleware);

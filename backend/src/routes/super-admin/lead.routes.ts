@@ -10,8 +10,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireSuperAdmin } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 
-import './lead.docs';
-
 const superAdminLeadRouter = Router();
 
 // Validation schemas (inline)

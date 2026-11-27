@@ -30,8 +30,6 @@ import {
   updateOrderStatusSchema,
 } from '@/validations/order/order.schema';
 
-import './order.docs';
-
 const orderRouter = Router();
 
 orderRouter.use(authMiddleware);

@@ -22,8 +22,6 @@ import {
 } from '@/validations/outlets/outlet.schema';
 import { setActiveOutletSchema } from '@/validations/outlets/active-outlet.schema';
 
-import './outlets.docs';
-
 const outletsRouter = Router({ mergeParams: true });
 
 // All routes require authentication

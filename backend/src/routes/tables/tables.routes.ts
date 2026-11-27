@@ -20,8 +20,6 @@ import {
   updateTableSchema,
 } from '@/validations/tables/table.schema';
 
-import './tables.docs';
-
 const tablesRouter = Router({ mergeParams: true });
 
 // All routes require authentication

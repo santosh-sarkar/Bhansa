@@ -6,8 +6,6 @@ import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 import { listStockMovementsSchema } from '@/validations/inventory/movement-history.schema';
 
-import './movement-history.docs';
-
 const movementHistoryRouter = Router();
 
 // All routes require authentication

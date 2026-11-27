@@ -18,8 +18,6 @@ import {
   updateMenuItemOptionSchema,
 } from '@/validations/menu/option.schema';
 
-import './option.docs';
-
 const optionRouter = Router();
 
 // All routes require authentication

@@ -4,8 +4,6 @@ import { resolveQrTokenController } from '@/controllers/public/public-table.cont
 import { validate } from '@/middlewares/validate';
 import { qrTokenSchema } from '@/validations/public/public-table.schema';
 
-import './public-table.docs';
-
 const publicTableRouter = Router();
 
 publicTableRouter.get(

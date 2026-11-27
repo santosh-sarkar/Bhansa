@@ -18,8 +18,6 @@ import {
 } from '@/validations/menu/item.schema';
 import { planLimitMiddleware } from '@/middlewares/planLimit';
 
-import './item.docs';
-
 const itemRouter = Router();
 
 // All routes require authentication

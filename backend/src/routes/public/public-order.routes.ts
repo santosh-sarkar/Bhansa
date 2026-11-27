@@ -10,8 +10,6 @@ import { orderIdSchema, placeOrderSchema } from '@/validations/public/public-ord
 import { createRateLimiter } from '@/middlewares/rateLimit';
 import { AppError } from '@/errors/AppError';
 
-import './public-order.docs';
-
 const publicOrderRouter = Router();
 
 // Rate limiters for public order endpoints

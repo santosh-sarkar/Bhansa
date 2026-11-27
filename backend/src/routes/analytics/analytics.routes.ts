@@ -10,8 +10,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 
-import './analytics.docs';
-
 const analyticsRouter = Router();
 
 // Validation schemas (inline)

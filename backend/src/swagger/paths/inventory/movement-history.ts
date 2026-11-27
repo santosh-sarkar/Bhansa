@@ -45,8 +45,8 @@ registry.registerPath({
         },
       },
     },
-    401: { description: 'Unauthenticated', content: { 'application/json': { schema: errorResponse('Unauthenticated').content['application/json'].schema } } },
-    403: { description: 'Forbidden', content: { 'application/json': { schema: errorResponse('Forbidden').content['application/json'].schema } } },
-    404: { description: 'Outlet not found', content: { 'application/json': { schema: errorResponse('Outlet not found').content['application/json'].schema } } },
+    401: errorResponse('Unauthenticated'),
+    403: errorResponse('Forbidden'),
+    404: errorResponse('Outlet not found'),
   },
 });

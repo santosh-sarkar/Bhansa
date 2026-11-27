@@ -18,8 +18,6 @@ import {
   bulkUpsertRecipeSchema,
 } from '@/validations/menu/recipe.schema';
 
-import './recipe.docs';
-
 const recipeRouter = Router();
 
 // All routes require authentication

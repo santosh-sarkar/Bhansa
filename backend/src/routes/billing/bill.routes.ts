@@ -7,8 +7,6 @@ import { authMiddleware } from '@/middlewares/auth';
 import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 
-import './bill.docs';
-
 const billRouter = Router();
 
 // Validation schemas (inline)

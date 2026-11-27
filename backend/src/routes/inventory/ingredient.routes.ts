@@ -17,8 +17,6 @@ import {
   updateIngredientSchema,
 } from '@/validations/inventory/ingredient.schema';
 
-import './ingredient.docs';
-
 const ingredientRouter = Router();
 
 // All routes require authentication

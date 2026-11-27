@@ -6,8 +6,6 @@ import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 import { restockSchema } from '@/validations/inventory/restock.schema';
 
-import './restock.docs';
-
 const restockRouter = Router();
 
 // All routes require authentication

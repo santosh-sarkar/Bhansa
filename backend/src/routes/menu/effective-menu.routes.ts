@@ -4,8 +4,6 @@ import { getEffectiveMenuController } from '@/controllers/menu/effective-menu.co
 import { authMiddleware } from '@/middlewares/auth';
 import { outletContextMiddleware } from '@/middlewares/outletContext';
 
-import './effective-menu.docs';
-
 const effectiveMenuRouter = Router();
 
 // All routes require authentication and outlet context

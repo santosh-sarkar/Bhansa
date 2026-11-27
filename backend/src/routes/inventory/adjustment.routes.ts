@@ -9,8 +9,6 @@ import { requireOrgPermission } from '@/middlewares/orgPermission';
 import { validate } from '@/middlewares/validate';
 import { adjustmentSchema, wastageSchema } from '@/validations/inventory/adjustment.schema';
 
-import './adjustment.docs';
-
 const adjustmentRouter = Router();
 
 // All routes require authentication
