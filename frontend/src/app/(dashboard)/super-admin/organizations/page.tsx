@@ -1,3 +1,8 @@
-// Role route: /super-admin/organizations
-// Renders the shared feature page implementation
-export { default } from '@/features/super-admin/pages/SuperAdminDashboardPage'
+// Route: /super-admin/organizations
+'use client'
+
+import { OrganizationsPage } from '@/features/super-admin/pages/OrganizationsPage'
+
+export default function SuperAdminOrganizationsPage() {
+  return <OrganizationsPage />
+}

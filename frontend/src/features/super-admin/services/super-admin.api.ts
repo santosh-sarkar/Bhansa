@@ -1,26 +1,6 @@
-import { api, type ApiResult } from '@/lib/apiClient'
+import { api, type ApiResult, type PaginationMeta } from '@/lib/apiClient'
 
-interface SuccessEnvelope<T> {
-  success: boolean
-  data: T
-}
-
-async function unwrap<T>(promise: Promise<ApiResult<SuccessEnvelope<T>>>): Promise<T> {
-  const result = await promise
-  if (result.error) throw new Error(result.error.message)
-  return result.data.data
-}
-
-function buildQuery(params: Record<string, string | number | boolean | undefined>): string {
-  const searchParams = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== '') searchParams.set(key, String(value))
-  })
-  const query = searchParams.toString()
-  return query ? `?${query}` : ''
-}
-
-// ===== Organizations =====
+// ===== Types =====
 
 export interface OrganizationListItem {
   id: string
@@ -38,20 +18,62 @@ export interface OrganizationListItem {
   deleted_at: string | null
 }
 
-export interface OrganizationDetail extends OrganizationListItem {
+export interface OrganizationStaffMember {
+  id: string
+  email: string
+  full_name: string
+  is_active: boolean
+  role: string
+  outlet_id: string | null
+}
+
+export interface OrganizationSubscription {
+  id: string
+  status: string
+  plan_name: string | null
+  plan_code: string | null
+  trial_ends_at: string | null
+  grace_ends_at: string | null
+  current_period_end: string | null
+}
+
+export interface OrganizationDetail {
+  id: string
+  name: string
+  slug: string
+  status: string
+  currency: string
+  outlet_count: number
+  staff_count: number
+  subscription_status: string | null
+  subscription_plan: string | null
+  trial_ends_at: string | null
+  grace_ends_at: string | null
+  created_at: string
+  deleted_at: string | null
   outlets: Array<{ id: string; name: string; is_active: boolean }>
-  subscriptions: Array<{ id: string; status: string; plan_code: string; plan_name: string; trial_ends_at: string | null }>
-  staff: Array<{ id: string; full_name: string; email: string; roles: string[]; outlet_ids: string[] }>
+  staff: OrganizationStaffMember[]
+  subscription: OrganizationSubscription | null
+  custom_plan_lead: {
+    id: string
+    contact_name: string
+    contact_email: string
+    outlet_count: number | null
+    handled: boolean
+    created_at: string
+  } | null
 }
 
 export interface OrganizationsListResponse {
-  data: OrganizationListItem[]
-  pagination: { page: number; limit: number; total: number; totalPages: number }
+  organizations: OrganizationListItem[]
+  pagination: PaginationMeta
 }
 
 export interface OrganizationActionResponse {
-  organization: OrganizationDetail
+  success: boolean
 }
+
+// ===== Organizations =====
 
 export async function fetchOrganizations(params?: {
   page?: number
@@ -59,23 +81,37 @@ export async function fetchOrganizations(params?: {
   status?: string
   search?: string
 }): Promise<OrganizationsListResponse> {
-  return unwrap(api.get<SuccessEnvelope<OrganizationsListResponse>>(`/super-admin/organizations${buildQuery(params ?? {})}`))
+  const result = await api.get<unknown[]>(`/super-admin/organizations${buildQuery(params ?? {})}`)
+  if (result.error) throw new Error(result.error.message)
+  const organizations = Array.isArray(result.data) ? (result.data as OrganizationListItem[]) : []
+  const pagination =
+    result.pagination ??
+    ({ page: 1, limit: 20, total: organizations.length, totalPages: 1 } as PaginationMeta)
+  return { organizations, pagination }
 }
 
 export async function fetchOrganizationDetail(id: string): Promise<OrganizationDetail> {
-  return unwrap(api.get<SuccessEnvelope<OrganizationDetail>>(`/super-admin/organizations/${id}`))
+  const result = await api.get<OrganizationDetail>(`/super-admin/organizations/${id}`)
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
 export async function suspendOrganization(id: string): Promise<OrganizationActionResponse> {
-  return unwrap(api.post<SuccessEnvelope<OrganizationActionResponse>>(`/super-admin/organizations/${id}/suspend`))
+  const result = await api.post<unknown>(`/super-admin/organizations/${id}/suspend`)
+  if (result.error) throw new Error(result.error.message)
+  return (result.data ?? { success: true }) as OrganizationActionResponse
 }
 
 export async function reactivateOrganization(id: string): Promise<OrganizationActionResponse> {
-  return unwrap(api.post<SuccessEnvelope<OrganizationActionResponse>>(`/super-admin/organizations/${id}/reactivate`))
+  const result = await api.post<unknown>(`/super-admin/organizations/${id}/reactivate`)
+  if (result.error) throw new Error(result.error.message)
+  return (result.data ?? { success: true }) as OrganizationActionResponse
 }
 
-export async function deleteOrganization(id: string): Promise<{ deleted: boolean }> {
-  return unwrap(api.delete<SuccessEnvelope<{ deleted: boolean }>>(`/super-admin/organizations/${id}`))
+export async function deleteOrganization(id: string): Promise<{ success: boolean }> {
+  const result = await api.delete<unknown>(`/super-admin/organizations/${id}`)
+  if (result.error) throw new Error(result.error.message)
+  return (result.data ?? { success: true }) as { success: boolean }
 }
 
 // ===== Plans =====
@@ -89,17 +125,16 @@ export interface PlanListItem {
   max_staff: number | null
   max_menu_items: number | null
   multi_outlet_enabled: boolean
+  features: Record<string, unknown>
   is_public: boolean
   subscription_count: number
   created_at: string
 }
 
-export interface PlanDetail extends PlanListItem {
-  features: Record<string, unknown>
-}
+export type PlanDetail = PlanListItem
 
 export interface PlansListResponse {
-  data: PlanListItem[]
+  plans: PlanListItem[]
 }
 
 export interface CreatePlanInput {
@@ -126,23 +161,34 @@ export interface UpdatePlanInput {
 }
 
 export async function fetchPlans(): Promise<PlansListResponse> {
-  return unwrap(api.get<SuccessEnvelope<PlansListResponse>>('/super-admin/plans'))
+  const result = await api.get<PlanListItem[]>('/super-admin/plans')
+  if (result.error) throw new Error(result.error.message)
+  const plans = Array.isArray(result.data) ? result.data : []
+  return { plans }
 }
 
 export async function fetchPlan(id: string): Promise<PlanDetail> {
-  return unwrap(api.get<SuccessEnvelope<PlanDetail>>(`/super-admin/plans/${id}`))
+  const result = await api.get<PlanDetail>(`/super-admin/plans/${id}`)
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
 export async function createPlan(data: CreatePlanInput): Promise<PlanDetail> {
-  return unwrap(api.post<SuccessEnvelope<PlanDetail>>('/super-admin/plans', data))
+  const result = await api.post<PlanDetail>('/super-admin/plans', data)
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
 export async function updatePlan(id: string, data: UpdatePlanInput): Promise<PlanDetail> {
-  return unwrap(api.patch<SuccessEnvelope<PlanDetail>>(`/super-admin/plans/${id}`, data))
+  const result = await api.patch<PlanDetail>(`/super-admin/plans/${id}`, data)
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
-export async function deletePlan(id: string): Promise<{ deleted: boolean }> {
-  return unwrap(api.delete<SuccessEnvelope<{ deleted: boolean }>>(`/super-admin/plans/${id}`))
+export async function deletePlan(id: string): Promise<{ success: boolean }> {
+  const result = await api.delete<unknown>(`/super-admin/plans/${id}`)
+  if (result.error) throw new Error(result.error.message)
+  return (result.data ?? { success: true }) as { success: boolean }
 }
 
 // ===== Subscriptions =====
@@ -154,7 +200,7 @@ export interface SubscriptionListItem {
   plan_id: string
   plan_code: string
   plan_name: string
-  status: 'trialing' | 'active' | 'grace' | 'suspended' | 'cancelled'
+  status: string
   trial_ends_at: string | null
   grace_ends_at: string | null
   current_period_end: string | null
@@ -165,56 +211,56 @@ export interface SubscriptionListItem {
   updated_at: string
 }
 
-export interface SubscriptionDetail extends SubscriptionListItem {
-  organization_id: string
-  organization_name: string
-  plan_id: string
-  plan_code: string
-  plan_name: string
-}
+export type SubscriptionDetail = SubscriptionListItem
 
-export interface SubscriptionsListResponse {
-  data: SubscriptionListItem[]
-  pagination: { page: number; limit: number; total: number; totalPages: number }
-}
-
-export interface UpdateOverridesInput {
+export interface UpdateSubscriptionOverridesInput {
   max_outlets_override: number | null
   max_staff_override: number | null
   max_menu_items_override: number | null
 }
 
 export interface ExtendTrialInput {
-  days: number
+  trial_ends_at: string // ISO datetime string
 }
 
 export interface ChangePlanInput {
   plan_id: string
-  prorate: boolean
+  current_period_end?: string // ISO datetime string, optional
 }
 
-export async function fetchSubscriptions(params?: {
-  page?: number
-  limit?: number
-  status?: string
-}): Promise<SubscriptionsListResponse> {
-  return unwrap(api.get<SuccessEnvelope<SubscriptionsListResponse>>(`/super-admin/subscriptions${buildQuery(params ?? {})}`))
+export interface SubscriptionsListResponse {
+  subscriptions: SubscriptionListItem[]
+}
+
+export async function fetchSubscriptions(): Promise<SubscriptionsListResponse> {
+  const result = await api.get<SubscriptionListItem[]>('/super-admin/subscriptions')
+  if (result.error) throw new Error(result.error.message)
+  const subscriptions = Array.isArray(result.data) ? result.data : []
+  return { subscriptions }
 }
 
 export async function fetchSubscriptionDetail(id: string): Promise<SubscriptionDetail> {
-  return unwrap(api.get<SuccessEnvelope<SubscriptionDetail>>(`/super-admin/subscriptions/${id}`))
+  const result = await api.get<SubscriptionDetail>(`/super-admin/subscriptions/${id}`)
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
-export async function updateSubscriptionOverrides(id: string, data: UpdateOverridesInput): Promise<SubscriptionDetail> {
-  return unwrap(api.patch<SuccessEnvelope<SubscriptionDetail>>(`/super-admin/subscriptions/${id}/overrides`, data))
+export async function updateSubscriptionOverrides(id: string, data: UpdateSubscriptionOverridesInput): Promise<SubscriptionDetail> {
+  const result = await api.patch<SubscriptionDetail>(`/super-admin/subscriptions/${id}/overrides`, data)
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
-export async function extendSubscriptionTrial(id: string, days: number): Promise<SubscriptionDetail> {
-  return unwrap(api.patch<SuccessEnvelope<SubscriptionDetail>>(`/super-admin/subscriptions/${id}/extend-trial`, { days }))
+export async function extendSubscriptionTrial(id: string, trialEndsAt: string): Promise<SubscriptionDetail> {
+  const result = await api.patch<SubscriptionDetail>(`/super-admin/subscriptions/${id}/extend-trial`, { trial_ends_at: trialEndsAt })
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
 export async function changeSubscriptionPlan(id: string, data: ChangePlanInput): Promise<SubscriptionDetail> {
-  return unwrap(api.patch<SuccessEnvelope<SubscriptionDetail>>(`/super-admin/subscriptions/${id}/change-plan`, data))
+  const result = await api.patch<SubscriptionDetail>(`/super-admin/subscriptions/${id}/change-plan`, data)
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
 // ===== Leads =====
@@ -232,8 +278,8 @@ export interface Lead {
 }
 
 export interface LeadsListResponse {
-  data: Lead[]
-  pagination: { page: number; limit: number; total: number; totalPages: number }
+  leads: Lead[]
+  pagination: PaginationMeta
 }
 
 export async function fetchLeads(params?: {
@@ -241,15 +287,23 @@ export async function fetchLeads(params?: {
   limit?: number
   handled?: 'true' | 'false'
 }): Promise<LeadsListResponse> {
-  return unwrap(api.get<SuccessEnvelope<LeadsListResponse>>(`/super-admin/leads${buildQuery(params ?? {})}`))
+  const result = await api.get<Lead[]>(`/super-admin/leads${buildQuery(params ?? {})}`)
+  if (result.error) throw new Error(result.error.message)
+  const leads = Array.isArray(result.data) ? result.data : []
+  const pagination = result.pagination ?? ({ page: 1, limit: 20, total: leads.length, totalPages: 1 } as PaginationMeta)
+  return { leads, pagination }
 }
 
 export async function fetchLead(id: string): Promise<Lead> {
-  return unwrap(api.get<SuccessEnvelope<Lead>>(`/super-admin/leads/${id}`))
+  const result = await api.get<Lead>(`/super-admin/leads/${id}`)
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
-export async function markLeadHandled(id: string): Promise<{ handled: boolean }> {
-  return unwrap(api.patch<SuccessEnvelope<{ handled: boolean }>>(`/super-admin/leads/${id}/handled`))
+export async function markLeadHandled(id: string): Promise<Lead> {
+  const result = await api.patch<Lead>(`/super-admin/leads/${id}/handled`)
+  if (result.error) throw new Error(result.error.message)
+  return result.data
 }
 
 // ===== Stats =====
@@ -303,7 +357,7 @@ export interface StatsStaff {
 export interface StatsLeads {
   total: number
   handled: number
-  pending: number
+  unhandled: number
 }
 
 export interface StatsMonthlyRevenue {
@@ -323,5 +377,18 @@ export interface PlatformStats {
 }
 
 export async function fetchPlatformStats(): Promise<PlatformStats> {
-  return unwrap(api.get<SuccessEnvelope<PlatformStats>>('/super-admin/stats'))
+  const result = await api.get<PlatformStats>('/super-admin/stats')
+  if (result.error) throw new Error(result.error.message)
+  return result.data
+}
+
+// ===== Helpers =====
+
+function buildQuery(params: Record<string, string | number | boolean | undefined>): string {
+  const searchParams = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') searchParams.set(key, String(value))
+  })
+  const query = searchParams.toString()
+  return query ? `?${query}` : ''
 }

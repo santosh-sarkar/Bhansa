@@ -11,8 +11,17 @@ export interface SuccessEnvelope<T> {
   data: T
 }
 
+export interface PaginationMeta {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
 export interface ApiResponse<T> {
   data: T
+  /** Present when the backend responds via sendPaginated(). */
+  pagination?: PaginationMeta
   error?: never
 }
 
@@ -185,11 +194,13 @@ async function handleResponse<T>(response: Response): Promise<ApiResult<T>> {
   }
 
   // Unwrap SuccessEnvelope if present
-  const unwrappedBody = isJson && body && typeof body === 'object' && 'success' in body && body.success === true
-    ? (body as SuccessEnvelope<T>).data
-    : body
+  const isEnvelope = isJson && body && typeof body === 'object' && 'success' in body && body.success === true
+  const unwrappedBody = isEnvelope ? (body as SuccessEnvelope<T>).data : body
+  const pagination = isEnvelope
+    ? (body as { pagination?: PaginationMeta }).pagination
+    : undefined
 
-  return { data: unwrappedBody as T }
+  return { data: unwrappedBody as T, pagination }
 }
 
 export const api = {

@@ -1,3 +1,8 @@
-// Role route: /super-admin/leads
-// Renders the shared feature page implementation
-export { default } from '@/features/super-admin/pages/SuperAdminDashboardPage'
+// Route: /super-admin/leads
+'use client'
+
+import { LeadsPage } from '@/features/super-admin/pages/LeadsPage'
+
+export default function SuperAdminLeadsPage() {
+  return <LeadsPage />
+}

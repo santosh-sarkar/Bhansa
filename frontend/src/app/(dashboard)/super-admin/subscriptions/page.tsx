@@ -1,3 +1,8 @@
-// Role route: /super-admin/subscriptions
-// Renders the shared feature page implementation
-export { default } from '@/features/super-admin/pages/SuperAdminDashboardPage'
+// Route: /super-admin/subscriptions
+'use client'
+
+import { SubscriptionsPage } from '@/features/super-admin/pages/SubscriptionsPage'
+
+export default function SuperAdminSubscriptionsPage() {
+  return <SubscriptionsPage />
+}

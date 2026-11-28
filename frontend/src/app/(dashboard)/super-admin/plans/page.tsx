@@ -1,3 +1,8 @@
-// Role route: /super-admin/plans
-// Renders the shared feature page implementation
-export { default } from '@/features/super-admin/pages/SuperAdminDashboardPage'
+// Route: /super-admin/plans
+'use client'
+
+import { PlansPage } from '@/features/super-admin/pages/PlansPage'
+
+export default function SuperAdminPlansPage() {
+  return <PlansPage />
+}

@@ -1,3 +1,8 @@
-// Role route: /super-admin
-// Renders the shared super-admin dashboard implementation
-export { default } from '@/features/super-admin/pages/SuperAdminDashboardPage'
+// Route: /super-admin
+'use client'
+
+import { OverviewPage } from '@/features/super-admin/pages/OverviewPage'
+
+export default function SuperAdminOverviewPage() {
+  return <OverviewPage />
+}

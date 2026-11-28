@@ -1,5 +1,10 @@
 import { prisma } from '@/lib/prisma';
 
+export interface MonthlyRevenue {
+  month: string;
+  amount: number;
+}
+
 export interface PlatformStats {
   organizations: {
     total: number;
@@ -52,6 +57,7 @@ export interface PlatformStats {
       amount: number;
     }>;
   };
+  monthly_revenue: MonthlyRevenue[];
 }
 
 /**
@@ -152,7 +158,7 @@ export async function getPlatformStats(): Promise<PlatformStats> {
   ]);
 
   // Revenue from successful subscription payments
-  const [revenueTotal, revenueThisMonth, revenuePending, revenueByPlan] = await Promise.all([
+  const [revenueTotal, revenueThisMonth, revenuePending, revenueByPlan, revenueAllTime] = await Promise.all([
     prisma.subscriptionPayment.aggregate({
       where: { status: 'completed' },
       _sum: { amount: true },
@@ -172,6 +178,11 @@ export async function getPlatformStats(): Promise<PlatformStats> {
       by: ['subscription_id'],
       _sum: { amount: true },
       where: { status: 'completed' },
+    }),
+    prisma.subscriptionPayment.findMany({
+      where: { status: 'completed' },
+      select: { amount: true, created_at: true },
+      orderBy: { created_at: 'asc' },
     }),
   ]);
 
@@ -203,6 +214,30 @@ export async function getPlatformStats(): Promise<PlatformStats> {
   }
 
   const revenueByPlanArray = Array.from(revenuePlanMap.values());
+
+  // Monthly revenue: last 12 months of completed payments
+  const monthlyRevenue = new Map<string, number>();
+  const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthlyRevenue.set(monthKey(d), 0);
+  }
+  for (const p of revenueAllTime) {
+    const key = monthKey(new Date(p.created_at));
+    if (monthlyRevenue.has(key)) {
+      monthlyRevenue.set(key, (monthlyRevenue.get(key) ?? 0) + Number(p.amount));
+    }
+  }
+  const monthlyRevenueArray = Array.from(monthlyRevenue.entries()).map(([month, amount]) => ({
+    month,
+    amount: Number(amount),
+  }));
+
+  const revenueTotalAmount = Number(revenueTotal._sum.amount ?? 0);
+  const revenueThisMonthAmount = Number(revenueThisMonth._sum.amount ?? 0);
+  const revenuePendingAmount = Number(revenuePending._sum.amount ?? 0);
+  const revenueAllTimeAmount = Number(revenueAllTime.reduce((sum, p) => sum + Number(p.amount), 0));
 
   return {
     organizations: {
@@ -239,10 +274,12 @@ export async function getPlatformStats(): Promise<PlatformStats> {
       unhandled: leadUnhandled,
     },
     revenue: {
-      total_paid: Number(revenueTotal._sum.amount ?? 0),
-      this_month: Number(revenueThisMonth._sum.amount ?? 0),
-      pending: Number(revenuePending._sum.amount ?? 0),
+      total_paid: revenueTotalAmount,
+      this_month: revenueThisMonthAmount,
+      pending: revenuePendingAmount,
       by_plan: revenueByPlanArray,
+      total_all_time: revenueAllTimeAmount,
     },
+    monthly_revenue: monthlyRevenueArray,
   };
 }
