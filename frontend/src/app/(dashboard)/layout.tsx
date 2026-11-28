@@ -29,7 +29,7 @@ import { SkipLink } from '@/components/ui/skip-link'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useNotificationSocket } from '@/features/notification/hooks/useNotificationSocket'
 import { useSocketConnectionState } from '@/lib/socket'
-import { getRoleFromPathname, getRoleConfig, ROLE_LAYOUTS } from '@/config/roleLayout'
+import { getRoleFromPathname, getRoleConfig, ROLE_LAYOUTS, type NavItem } from '@/config/roleLayout'
 import { getPrimaryRole, ROLE_CONFIGS } from '@/lib/roleUtils'
 import { cn } from '@/lib/utils'
 
@@ -45,8 +45,26 @@ function isSelectOutletRoute(pathname: string): boolean {
   return pathname === routes.selectOutlet
 }
 
-function SidebarNavItem({ item, pathname }: { item: typeof ROLE_LAYOUTS.owner.nav[0]; pathname: string }) {
-  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+function isNavItemActive(href: string, pathname: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+/**
+ * Pick the single best-matching nav item for the current path.
+ * Longest href wins so a root route (e.g. `/super-admin`) does not stay
+ * highlighted on its children, and nested items (e.g. analytics/consolidated)
+ * outrank their parent section.
+ */
+function getActiveNavHref(nav: NavItem[], pathname: string): string | null {
+  let active: string | null = null
+  for (const item of nav) {
+    if (!isNavItemActive(item.href, pathname)) continue
+    if (!active || item.href.length > active.length) active = item.href
+  }
+  return active
+}
+
+function SidebarNavItem({ item, isActive }: { item: NavItem; isActive: boolean }) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -122,12 +140,13 @@ function SidebarFooterVersion({ theme }: { theme: 'light' | 'kds' }) {
   )
 }
 
-function SidebarNavigation({ filteredNavigation, pathname }: { filteredNavigation: { name: string; href: string; icon: React.ComponentType<{ className?: string }> }[]; pathname: string }) {
+function SidebarNavigation({ filteredNavigation, pathname }: { filteredNavigation: NavItem[]; pathname: string }) {
+  const activeHref = getActiveNavHref(filteredNavigation, pathname)
   return (
     <nav className="flex-1 overflow-y-auto p-4">
       <SidebarMenu>
         {filteredNavigation.map((item) => (
-          <SidebarNavItem key={item.name} item={item} pathname={pathname} />
+          <SidebarNavItem key={item.name} item={item} isActive={item.href === activeHref} />
         ))}
       </SidebarMenu>
     </nav>
@@ -295,22 +314,25 @@ function RoleLayout({ user, hasPermission, hasRole, logout, getCurrentOutletId, 
 
             {/* User menu */}
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className={cn('relative h-9 w-9 rounded-full', isKds ? 'bg-kds-surface border border-kds-border' : '')}
-                >
-                  <Avatar>
-                    <AvatarImage 
-                      src={user?.email ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}` : ''} 
-                      alt={user?.fullName ?? 'User'} 
-                    />
-                    <AvatarFallback className={cn(isKds ? 'bg-kds-muted' : '')}>
-                      {user?.fullName?.[0]?.toUpperCase() ?? 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn('relative h-9 w-9 rounded-full', isKds ? 'bg-kds-surface border border-kds-border' : '')}
+                    aria-label="Open user menu"
+                  />
+                }
+              >
+                <Avatar>
+                  <AvatarImage 
+                    src={user?.email ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}` : ''} 
+                    alt={user?.fullName ?? 'User'} 
+                  />
+                  <AvatarFallback className={cn(isKds ? 'bg-kds-muted' : '')}>
+                    {user?.fullName?.[0]?.toUpperCase() ?? 'U'}
+                  </AvatarFallback>
+                </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className={cn('w-56', dropdownBg)}>
                 <DropdownMenuGroup>

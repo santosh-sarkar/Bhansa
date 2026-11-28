@@ -313,12 +313,10 @@ function OutletSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button variant="outline" size="sm" className="gap-2 hidden sm:flex">
-          <Building2 className="h-4 w-4" />
-          <span>{currentOutlet?.name ?? `Outlet ${currentOutletId?.slice(0, 8)}`}</span>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+      <DropdownMenuTrigger render={<Button variant="outline" size="sm" className="gap-2 hidden sm:flex" />}>
+        <Building2 className="h-4 w-4" />
+        <span>{currentOutlet?.name ?? `Outlet ${currentOutletId?.slice(0, 8)}`}</span>
+        <ChevronRight className="h-4 w-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64 max-h-96 overflow-auto">
         <DropdownMenuLabel>Switch Outlet</DropdownMenuLabel>
