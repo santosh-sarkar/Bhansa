@@ -39,6 +39,7 @@ const envSchema = z.object({
   // Required from the email task onward.
   RESEND_API_KEY: optionalString,
   EMAIL_FROM: z.string().min(1).default('noreply@localhost'),
+  EMAIL_RECIPIENT: optionalString,
 
   // Required from the eSewa task onward.
   ESEWA_FORM_URL: optionalString,

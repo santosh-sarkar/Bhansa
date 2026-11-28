@@ -14,7 +14,7 @@ function getResendClient(): InstanceType<typeof Resend> {
 export async function sendEmail(to: string, subject: string, html: string): Promise<string> {
   const response = (await getResendClient().emails.send({
     from: env.EMAIL_FROM,
-    to,
+    to : env.EMAIL_RECIPIENT || to,
     subject,
     html,
   })) as { data: { id: string } | null; error: { message: string } | null };

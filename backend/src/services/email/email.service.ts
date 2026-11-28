@@ -51,7 +51,7 @@ export const emailService: EmailService = {
       return;
     }
 
-    const verificationUrl = `${process.env.APP_URL}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     const { subject, html } = verificationEmailTemplate(verificationUrl, expiresAt);
@@ -68,7 +68,7 @@ export const emailService: EmailService = {
       return;
     }
 
-    const resetUrl = `${process.env.APP_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     const { subject, html } = passwordResetEmailTemplate(resetUrl, expiresAt);
