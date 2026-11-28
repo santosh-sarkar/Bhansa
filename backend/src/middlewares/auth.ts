@@ -32,6 +32,38 @@ const loadActiveUser = (userId: string) =>
   });
 
 const loadUserWithRole = async (userId: string, outletId?: string | null) => {
+  // First, check if user is superadmin - if so, skip staffAssignments query entirely
+  const userBase = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      full_name: true,
+      organization_id: true,
+      is_super_admin: true,
+      is_active: true,
+      email_verified_at: true,
+    },
+  });
+
+  if (!userBase || !userBase.is_active || !userBase.email_verified_at) {
+    return null;
+  }
+
+  // Superadmins don't have organization-level assignments; skip the join
+  if (userBase.is_super_admin) {
+    return {
+      id: userBase.id,
+      email: userBase.email,
+      full_name: userBase.full_name,
+      organization_id: userBase.organization_id,
+      is_super_admin: true,
+      role: 'super_admin',
+      outletId: null,
+    };
+  }
+
+  // Regular users: load their staffAssignments for the outlet
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -53,9 +85,7 @@ const loadUserWithRole = async (userId: string, outletId?: string | null) => {
     },
   });
 
-  if (!user || !user.is_active || !user.email_verified_at) {
-    return null;
-  }
+  if (!user) return null;
 
   const assignment = user.staffAssignments[0];
   return {
