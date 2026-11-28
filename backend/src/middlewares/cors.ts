@@ -2,7 +2,7 @@ import cors from 'cors';
 
 import { env } from '@/config/env';
 
-const allowedOrigins = [env.FRONTEND_URL];
+const allowedOrigins = [env.FRONTEND_URL, env.APP_URL];
 
 if (env.NODE_ENV === 'development') {
   allowedOrigins.push('http://localhost:3000', 'http://localhost:3001', 'http://localhost:4000');
