@@ -56,6 +56,7 @@ export interface PlatformStats {
       plan_name: string;
       amount: number;
     }>;
+    total_all_time: number;
   };
   monthly_revenue: MonthlyRevenue[];
 }
@@ -218,9 +219,9 @@ export async function getPlatformStats(): Promise<PlatformStats> {
   // Monthly revenue: last 12 months of completed payments
   const monthlyRevenue = new Map<string, number>();
   const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  const now = new Date();
+  const now2 = new Date();
   for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const d = new Date(now2.getFullYear(), now2.getMonth() - i, 1);
     monthlyRevenue.set(monthKey(d), 0);
   }
   for (const p of revenueAllTime) {

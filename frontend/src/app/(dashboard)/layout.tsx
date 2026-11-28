@@ -25,9 +25,11 @@ import { useAuth } from '@/features/auth/controllers/useAuth'
 import { routes } from '@/config/routes'
 import { OutletSwitcher } from '@/features/outlet/components/outlet-switcher'
 import { NotificationDropdown } from '@/features/notification/components/notification-dropdown'
+import { SuperAdminNotificationDropdown } from '@/features/super-admin/components/SuperAdminNotificationDropdown'
 import { SkipLink } from '@/components/ui/skip-link'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useNotificationSocket } from '@/features/notification/hooks/useNotificationSocket'
+import { useSuperAdminNotificationSocket } from '@/features/super-admin/hooks/useSuperAdminNotifications'
 import { useSocketConnectionState } from '@/lib/socket'
 import { getRoleFromPathname, getRoleConfig, ROLE_LAYOUTS, type NavItem } from '@/config/roleLayout'
 import { getPrimaryRole, ROLE_CONFIGS } from '@/lib/roleUtils'
@@ -250,6 +252,14 @@ function RoleLayout({ user, hasPermission, hasRole, logout, getCurrentOutletId, 
   const currentOutletId = getCurrentOutletId()
   const { guard, nav, brand, header, userMenu } = roleConfig
   const isKds = header.theme === 'kds'
+  const isSuperAdmin = roleConfig.prefix === routes.superAdmin
+
+  // Initialize appropriate notification socket
+  if (isSuperAdmin) {
+    useSuperAdminNotificationSocket()
+  } else {
+    useNotificationSocket()
+  }
 
   // Verify user has required role (at top level, not conditional)
   useEffect(() => {
@@ -310,7 +320,7 @@ function RoleLayout({ user, hasPermission, hasRole, logout, getCurrentOutletId, 
             {header.showOutletSwitcher && <OutletSwitcher />}
 
             {/* Notification bell */}
-            <NotificationDropdown />
+            {isSuperAdmin ? <SuperAdminNotificationDropdown /> : <NotificationDropdown />}
 
             {/* User menu */}
             <DropdownMenu>

@@ -26,6 +26,7 @@ import { superAdminPlanRouter } from '@/routes/super-admin/plan.routes';
 import { superAdminSubscriptionRouter } from '@/routes/super-admin/subscription.routes';
 import { superAdminLeadRouter } from '@/routes/super-admin/lead.routes';
 import { superAdminStatsRouter } from '@/routes/super-admin/stats.routes';
+import { superAdminNotificationRouter } from '@/routes/super-admin/notification.routes';
 
 export const apiRouter = Router();
 
@@ -55,3 +56,4 @@ apiRouter.use(superAdminPlanRouter);
 apiRouter.use(superAdminSubscriptionRouter);
 apiRouter.use(superAdminLeadRouter);
 apiRouter.use(superAdminStatsRouter);
+apiRouter.use(superAdminNotificationRouter);
