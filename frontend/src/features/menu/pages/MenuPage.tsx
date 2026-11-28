@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Plus } from 'lucide-react'
-import { useMenuDialogs } from '@/features/menu/components/MenuDialogContext'
+import { MenuDialogProvider, useMenuDialogs } from '@/features/menu/components/MenuDialogContext'
 import { CategoryDialog } from '@/features/menu/components/dialogs/CategoryDialog'
 import { MenuItemDialog } from '@/features/menu/components/dialogs/MenuItemDialog'
 import { OptionDialog } from '@/features/menu/components/dialogs/OptionDialog'
@@ -22,7 +22,7 @@ import {
 
 import { useAuthStore } from '@/store/authStore'
 
-export default function MenuPage() {
+function MenuPageContent() {
   const queryClient = useQueryClient()
   const { hasPermission } = useAuthStore()
 
@@ -161,17 +161,19 @@ export default function MenuPage() {
       {/* Dialogs - rendered via context */}
       <CategoryDialog categories={categories} />
       <MenuItemDialog categories={categories} />
-      <OptionsTable
-        options={managingOptionsItem?.options ?? []}
-        isLoading={false}
-        menuItem={managingOptionsItem!}
-        canManage={canManageMenu}
-        onEdit={openEditOption}
-        onDelete={() => {
-          // TODO: implement delete option
-        }}
-        onCreate={openCreateOption}
-      />
+      {managingOptionsItem && (
+        <OptionsTable
+          options={managingOptionsItem.options ?? []}
+          isLoading={false}
+          menuItem={managingOptionsItem}
+          canManage={canManageMenu}
+          onEdit={openEditOption}
+          onDelete={() => {
+            // TODO: implement delete option
+          }}
+          onCreate={openCreateOption}
+        />
+      )}
       <OptionDialog />
       <MenuItemOutletOverridesDialog
         menuItemId={managingOverridesItem?.id ?? ''}
@@ -181,5 +183,13 @@ export default function MenuPage() {
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ['menu', 'items'] })}
       />
     </div>
+  )
+}
+
+export default function MenuPage() {
+  return (
+    <MenuDialogProvider>
+      <MenuPageContent />
+    </MenuDialogProvider>
   )
 }

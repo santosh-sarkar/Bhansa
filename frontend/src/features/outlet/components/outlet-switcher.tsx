@@ -267,7 +267,7 @@ function OutletSwitcher() {
   const { user, hasPermission, getCurrentOutletId, getAccessibleOutletIds } = useAuthStore()
   const currentOutletId = getCurrentOutletId()
   const accessibleOutletIds = getAccessibleOutletIds()
-  const isOwner = user?.assignments.some(a => a.role === 'owner' && a.isActive)
+  const isOwner = user?.assignments.some(a => a.role?.code === 'owner' && a.isActive)
   const canManageOutlets = hasPermission('outlets.manage')
 
   const { data: outlets, isLoading, refetch } = useQuery({
@@ -283,7 +283,7 @@ function OutletSwitcher() {
     },
   })
 
-  const currentOutlet = outlets?.data.find(o => o.id === currentOutletId)
+  const currentOutlet = outlets?.data?.find(o => o.id === currentOutletId)
 
   const handleSwitch = (outletId: string) => {
     switchMutation.mutate(outletId)
@@ -299,7 +299,7 @@ function OutletSwitcher() {
     )
   }
 
-  if (!outlets?.data.length || !canManageOutlets) {
+  if (!outlets?.data?.length || !canManageOutlets) {
     return (
       currentOutletId && (
         <Button variant="outline" size="sm" className="gap-2 hidden sm:flex" disabled>

@@ -35,25 +35,22 @@ interface LowStockItem {
   low_threshold: number
 }
 
-async function fetchOwnerStats(): Promise<OwnerStats> {
-  const outletId = useAuthStore.getState().getCurrentOutletId()
+async function fetchOwnerStats(outletId: string): Promise<OwnerStats> {
   const result = await api.get<OwnerStats>(`/analytics/summary${outletId ? `?outlet_id=${outletId}` : ''}`)
   if (result.error) throw new Error(result.error.message)
   return result.data!
 }
 
-async function fetchRecentOrders(): Promise<RecentOrder[]> {
-  const outletId = useAuthStore.getState().getCurrentOutletId()
+async function fetchRecentOrders(outletId: string): Promise<RecentOrder[]> {
   const result = await api.get<{ data: RecentOrder[] }>(`/orders?limit=5&page=1${outletId ? `&outlet_id=${outletId}` : ''}`)
   if (result.error) throw new Error(result.error.message)
-  return result.data!.data
+  return result.data?.data ?? []
 }
 
-async function fetchLowStock(): Promise<LowStockItem[]> {
-  const outletId = useAuthStore.getState().getCurrentOutletId()
+async function fetchLowStock(outletId: string): Promise<LowStockItem[]> {
   const result = await api.get<{ data: LowStockItem[] }>(`/inventory/low-stock${outletId ? `?outlet_id=${outletId}` : ''}`)
   if (result.error) throw new Error(result.error.message)
-  return result.data!.data
+  return result.data?.data ?? []
 }
 
 export default function OwnerDashboard() {
@@ -63,19 +60,19 @@ export default function OwnerDashboard() {
 
   const { data: stats } = useQuery({
     queryKey: ['owner', 'stats', outletId],
-    queryFn: fetchOwnerStats,
+    queryFn: () => fetchOwnerStats(outletId!),
     enabled: !!outletId,
   })
 
   const { data: recentOrders } = useQuery({
     queryKey: ['owner', 'recent-orders', outletId],
-    queryFn: fetchRecentOrders,
+    queryFn: () => fetchRecentOrders(outletId!),
     enabled: !!outletId,
   })
 
   const { data: lowStock } = useQuery({
     queryKey: ['owner', 'low-stock', outletId],
-    queryFn: fetchLowStock,
+    queryFn: () => fetchLowStock(outletId!),
     enabled: !!outletId,
   })
 
@@ -114,7 +111,7 @@ export default function OwnerDashboard() {
     },
     {
       title: 'Active Outlets',
-      value: `${stats?.outlets.active ?? 0} / ${stats?.outlets.total ?? 0}`,
+      value: `${stats?.outlets?.active ?? 0} / ${stats?.outlets?.total ?? 0}`,
       subtitle: 'Click to manage',
       icon: Building2,
       color: 'text-purple-600 bg-purple-100',
@@ -122,7 +119,7 @@ export default function OwnerDashboard() {
     },
     {
       title: 'Staff',
-      value: `${stats?.staff.active ?? 0} / ${stats?.staff.total ?? 0}`,
+      value: `${stats?.staff?.active ?? 0} / ${stats?.staff?.total ?? 0}`,
       subtitle: 'Active / Total',
       icon: Users,
       color: 'text-orange-600 bg-orange-100',
@@ -130,18 +127,18 @@ export default function OwnerDashboard() {
     },
     {
       title: 'Menu Items',
-      value: stats?.menu.active ?? 0,
-      subtitle: `${stats?.menu.categories ?? 0} categories`,
+      value: stats?.menu?.active ?? 0,
+      subtitle: `${stats?.menu?.categories ?? 0} categories`,
       icon: Utensils,
       color: 'text-pink-600 bg-pink-100',
       href: routes.ownerMenu,
     },
     {
       title: 'Low Stock Alerts',
-      value: stats?.inventory.lowStock ?? 0,
-      subtitle: `${stats?.inventory.outOfStock ?? 0} out of stock`,
+      value: stats?.inventory?.lowStock ?? 0,
+      subtitle: `${stats?.inventory?.outOfStock ?? 0} out of stock`,
       icon: AlertTriangle,
-      color: stats?.inventory.lowStock ? 'text-red-600 bg-red-100' : 'text-gray-600 bg-gray-100',
+      color: stats?.inventory?.lowStock ? 'text-red-600 bg-red-100' : 'text-gray-600 bg-gray-100',
       href: routes.ownerInventory,
     },
   ]

@@ -221,7 +221,7 @@ function IngredientsTab() {
   })
 
   const ingredients = ingredientsData?.data ?? []
-  const totalPages = ingredientsData?.meta.totalPages ?? 1
+  const totalPages = ingredientsData?.meta?.totalPages ?? 1
 
   // Create mutation
   const createDialogRef = useRef<HTMLDialogElement | null>(null)

@@ -36,15 +36,16 @@ const roleLabels: Record<string, string> = {
 
 export function StaffAssignmentsDialog({ staff, open, onOpenChange, onSuccess }: StaffAssignmentsDialogProps) {
   const queryClient = useQueryClient()
+  const assignments = staff?.assignments ?? []
   const [selectedOutlets, setSelectedOutlets] = useState<string[]>(
-    staff.assignments.map(a => a.outletId).filter(Boolean) as string[]
+    assignments.map(a => a.outletId).filter(Boolean) as string[]
   )
   const [outlets, setOutlets] = useState<Outlet[]>([])
   const [isLoadingOutlets, setIsLoadingOutlets] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const isOwner = staff.assignments.some(a => a.role === 'owner' && a.isActive)
-  const isWaiterOrKitchen = staff.assignments.some(
+  const isOwner = assignments.some(a => a.role === 'owner' && a.isActive)
+  const isWaiterOrKitchen = assignments.some(
     a => (a.role === 'waiter' || a.role === 'kitchen') && a.isActive
   )
 
@@ -74,12 +75,12 @@ export function StaffAssignmentsDialog({ staff, open, onOpenChange, onSuccess }:
     if (open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedOutlets(
-        staff.assignments.map(a => a.outletId).filter(Boolean) as string[]
+        assignments.map(a => a.outletId).filter(Boolean) as string[]
       )
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(null)
     }
-  }, [open, staff.assignments])
+  }, [open, assignments])
 
   const mutation = useMutation({
     mutationFn: (outletIds: string[]) => updateStaffAssignments(staff.id, { outletIds }),
@@ -113,7 +114,7 @@ export function StaffAssignmentsDialog({ staff, open, onOpenChange, onSuccess }:
     mutation.mutate(selectedOutlets)
   }
 
-  const currentRoles = staff.assignments
+  const currentRoles = assignments
     .filter(a => a.isActive)
     .map(a => roleLabels[a.role] ?? a.role)
     .join(', ')

@@ -209,8 +209,8 @@ function OutletRequiredGuard({ children, user, hasPermission, hasRole, currentOu
     )
   }
 
-  // Show setup prompt if no assignments at all
-  if (!currentOutletId && !hasAssignments && !isSelectOutletRoute(pathname)) {
+  // Show setup prompt if no assignments at all (but allow outlet managers to create their first outlet)
+  if (!currentOutletId && !hasAssignments && !canManageOutlets && !isSelectOutletRoute(pathname)) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
         <Alert variant="default" className={cn('max-w-md', theme === 'kds' ? 'bg-kds-surface border-kds-border' : '')}>

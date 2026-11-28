@@ -483,7 +483,7 @@ export default function StaffPage() {
     return () => window.removeEventListener('deactivate-staff', handleDeactivate as EventListener)
   }, [deactivateMutation])
 
-  const filteredStaff = staffData?.data.filter((s) =>
+  const filteredStaff = staffData?.data?.filter((s) =>
     s.fullName.toLowerCase().includes(search.toLowerCase()) ||
     s.email.toLowerCase().includes(search.toLowerCase())
   ) ?? []

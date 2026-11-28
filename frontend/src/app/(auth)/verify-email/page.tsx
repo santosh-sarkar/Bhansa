@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -27,19 +27,23 @@ const resendSchema = z.object({
 
 type ResendForm = z.infer<typeof resendSchema>
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isVerifying, setIsVerifying] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [autoVerifyAttempted, setAutoVerifyAttempted] = useState(false)
+  const [showManualForm, setShowManualForm] = useState(false)
 
   const {
     register: registerVerify,
     handleSubmit: handleSubmitVerify,
     formState: { errors: verifyErrors },
+    setValue,
   } = useForm<VerifyForm>({
     resolver: zodResolver(verifySchema),
     defaultValues: { token: '' },
@@ -62,6 +66,10 @@ export default function VerifyEmailPage() {
       const result = await api.post('/auth/verify-email', { token: data.token })
       if (result.error) {
         setServerError(result.error.message)
+        // If auto-verify failed, show manual form for retry
+        if (autoVerifyAttempted) {
+          setShowManualForm(true)
+        }
         return
       }
       setSuccess(true)
@@ -71,10 +79,26 @@ export default function VerifyEmailPage() {
       }, 2000)
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Verification failed')
+      if (autoVerifyAttempted) {
+        setShowManualForm(true)
+      }
     } finally {
       setIsVerifying(false)
     }
   }
+
+  // Auto-verify from URL token on page load
+  useEffect(() => {
+    const token = searchParams.get('token')
+    if (token && !autoVerifyAttempted) {
+      setValue('token', token)
+      setAutoVerifyAttempted(true)
+      onVerify({ token })
+    } else if (!token) {
+      // No token in URL, show manual form
+      setShowManualForm(true)
+    }
+  }, [searchParams, autoVerifyAttempted, onVerify, setValue])
 
   const onResend = async (data: ResendForm) => {
     setIsResending(true)
@@ -134,12 +158,34 @@ export default function VerifyEmailPage() {
     )
   }
 
+  // Show loading during auto-verification
+  if (autoVerifyAttempted && isVerifying && !showManualForm) {
+    return (
+      <div className="space-y-6 text-center">
+        <div className="flex justify-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" aria-hidden="true" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Verifying your email...</h2>
+          <p className="text-muted-foreground mt-2">
+            Please wait while we verify your account.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show manual form if: no token in URL, or auto-verify failed
+  if (!showManualForm) {
+    return null
+  }
+
   return (
     <div className="space-y-6">
       <CardHeader className="text-center space-y-2">
         <CardTitle className="text-2xl">Verify your email</CardTitle>
         <CardDescription>
-          Enter the verification code sent to your email address
+          Enter the verification token from the email link
         </CardDescription>
       </CardHeader>
 
@@ -159,11 +205,10 @@ export default function VerifyEmailPage() {
             <Input
               id="token"
               type="text"
-              placeholder="Enter 6-digit code"
-              className="pl-10 text-center tracking-widest text-lg"
+              placeholder="Paste verification token from email"
+              className="pl-10 text-center text-sm"
               {...registerVerify('token')}
               disabled={isVerifying}
-              maxLength={6}
               aria-invalid={!!verifyErrors.token}
               aria-describedby={verifyErrors.token ? 'token-error' : undefined}
             />
@@ -262,5 +307,13 @@ export default function VerifyEmailPage() {
         </p>
       </CardFooter>
     </div>
+  )
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <VerifyEmailContent />
+    </Suspense>
   )
 }

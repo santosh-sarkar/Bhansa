@@ -11,6 +11,9 @@ export interface SuccessEnvelope<T> {
   data: T
 }
 
+// Import auth store for auto outletId resolution
+import { useAuthStore } from '@/store/authStore'
+
 export interface PaginationMeta {
   page: number
   limit: number
@@ -107,7 +110,11 @@ export async function apiClient<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<ApiResult<T>> {
-  const { outletId, params, skipAuth, headers, ...fetchOptions } = options
+  const { outletId: explicitOutletId, params, skipAuth, headers, ...fetchOptions } = options
+
+  // Auto-include outletId from auth store if not explicitly provided
+  const storeOutletId = useAuthStore.getState().getCurrentOutletId()
+  const outletId = explicitOutletId ?? storeOutletId
 
   const accessToken = skipAuth ? null : await getAccessToken()
 
